@@ -76,4 +76,5 @@ plot(mm)
 dev.off()
 ```
 
-
+https://github.com/LorePlant/Landscape_OleaEuropea/blob/Landscape_OleaEuropea/plot/Mantel_olive.png
+![https://github.com/LorePlant/Landscape_OleaEuropea/blob/Landscape_OleaEuropea/plot/Mantel_olive.png]
