@@ -74,7 +74,7 @@ mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
 jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height = "350")
 plot(mm)
 dev.off()
-```
 
-https://github.com/LorePlant/Landscape_OleaEuropea/blob/Landscape_OleaEuropea/plot/Mantel_olive.png
-![https://github.com/LorePlant/Landscape_OleaEuropea/blob/Landscape_OleaEuropea/plot/Mantel_olive.png]
+```![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
+
+
