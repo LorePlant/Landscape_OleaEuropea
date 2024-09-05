@@ -75,6 +75,8 @@ jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height
 plot(mm)
 dev.off()
 
-```![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
+```
+
+![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
 
 
