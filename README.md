@@ -45,6 +45,35 @@ dist.geo = dist(geo, method = "euclidean")
 #genetic distance
 distgenEUCL <- dist(gl.genoLAND, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
 ```
+With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if thre is a linear correlation betaeen ecological distqnce and genetic distance matrices
+```
+# mantel test Genetic distance-ecological distance
+geno_eco = mantel(distgenEUCL, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
+geno_eco
+summary(lm(dist.PCbio~distgenEUCL))
+graph = mantel.correlog(distgenEUCL, dist.PCbio, XY=NULL, n.class=0, break.pts=NULL, 
+                        cutoff=TRUE, r.type="pearson", nperm=999, mult="holm", progressive=TRUE)
 
+
+xx = as.vector(distgenEUCL) #convert distance matrix into a vector
+zz = as.vector(dist.PCbio)
+manatelmatrix = data.frame(zz,xx)
+mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
+  geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21,fill = "grey") + 
+  geom_smooth(method = "lm", colour = "red", alpha = 0.2)+
+  labs(y = "Euclidean genetic distance", x = "Euclidean ecological distance")+
+  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
+         axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
+         axis.title= element_text(face = "bold", size = 18, colour = "black"), 
+         panel.background = element_blank(), 
+         panel.border = element_rect(fill = NA, colour = "black"), 
+         legend.title = element_text(size =12, face = "bold", colour = "black"),
+         legend.text = element_text(size = 10, face = "bold", colour = "black"), 
+         legend.position = "top", strip.background = element_rect(fill = "grey90", colour = "black"),
+         strip.text = element_text(size = 9, face = "bold"))
+jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height = "350")
+plot(mm)
+dev.off()
+```
 
 
