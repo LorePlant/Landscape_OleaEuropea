@@ -76,6 +76,40 @@ plot(mm)
 dev.off()
 
 ```
+Considering the potential effect of geogrqphy in the ecological distance I used partial Mantel test which consider the correlation betaeen genetic distance and environmental distance considering geographic distance as covariate
+```
+#partial Mantel test 
+partial_mantel = mantel.partial(distgenEUCL, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
+                                na.rm = TRUE)
+partial_mantel
+summary(lm(distgenEUCL~dist.PCbio|dist.geo))
+#plotting partial Mantel test
+xx = as.vector(distgenEUCL) #convert distance matrix into a vector
+yy= as.vector(dist.geo)
+zz = as.vector(dist.PCbio)
+partial_mantel_matrix = data.frame(xx,zz,yy)#new data frame with vectorize distance matrix
+
+mp = ggplot(partial_mantel_matrix, aes(y = xx, x = zz)) + 
+  geom_point(size = 2.5, alpha = 0.75, colour = "black",shape = 21, aes(fill = yy)) + 
+  geom_smooth(method = "lm", colour = "red", alpha = 0.2) + 
+  scale_fill_continuous(high = "navy", low = "lightblue")+
+  labs(y = "Eucledian genetic distance", x = "Eucledian ecological distance", fill= "geographic distance")+
+  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
+         axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
+         axis.title= element_text(face = "bold", size = 18, colour = "black"), 
+         panel.background = element_blank(), 
+         panel.border = element_rect(fill = NA, colour = "black"), 
+         legend.title = element_text(size =12, face = "bold", colour = "black"),
+         legend.text = element_text(size = 10, face = "bold", colour = "black"), 
+         legend.position = "top", strip.background = element_rect(fill = "grey90", colour = "black"),
+         strip.text = element_text(size = 9, face = "bold"))
+
+
+jpeg(file = "/lustre/rocchettil/partial_mantel_olive.jpeg")
+plot(mp)
+dev.off()
+```
+The result show a correlation between environmental distance and geogrqphic distance, where geographic distqnce increases ( darker dots color) environmental distqnce also increase. Considering the correlation with genetic distance there is no correlation suggesting a non significant IBE
 
 ![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
 
