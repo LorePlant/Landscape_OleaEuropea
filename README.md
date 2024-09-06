@@ -201,7 +201,8 @@ dev.off()
 
 
 >Geographic regions: France, Corse, Spain, Morocco
-````
+
+```
 #color regions
 loading_RDAgeo_env<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
