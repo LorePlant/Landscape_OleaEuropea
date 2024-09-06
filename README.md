@@ -119,6 +119,37 @@ The result show a correlation between environmental distance and geogrqphic dist
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allo to dissect the the total genetic variance among the environment, geographic and demographic components. 
 In this first analysis I used the following RDA model to see if we can detect specif environmental variable diverging Wild vs Admixed genotypes or geographic regions.
  $` Gen \sim Environment + Geography `$
+Here the code used:
+
+```
+RDAgeo_env <- rda(genotype ~ long + lat + bio1+	bio2	+bio4+	bio6	+bio8	+bio9	+bio12	+bio14+	bio15	+bio19, data359)
+write.table(score, "Genotypevalue_RDAgeo_env")
+summary(eigenvals(RDAgeo_env, model = "constrained"))
+data_RDAgeo_env <- read.table(file = "clipboard", 
+                              sep = "\t", header=TRUE)
+
+
+TAB_gen <- data.frame(geno_names = row.names(score), score)
+install.packages("ggrepel")
+library(ggrepel)
+TAB_var <- as.data.frame(scores(RDAgeo_env, choices=c(1,2), display="bp"))
+
+##color ADM vs WLD
+loading_RDAgeo_env<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_point(data = data_RDAgeo_env, aes(x=RDA1, y=RDA2, color=group), size = 4.5) +
+  scale_color_manual(values = c("blue", "darkorange")) + 
+  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
+  xlab("RDA 1: 67 %") + ylab("RDA 2: 7 %") +
+  guides(color=guide_legend(title="Genetic group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
+jpeg(file = "/lustre/rocchettil/RDA_geo_env.jpeg")
+loading_RDAgeo_env
+dev.off()
+```
 
  
 ![RDA_geo_env](https://github.com/user-attachments/assets/2ca227ac-9432-402b-a408-0f1d92419d22)
