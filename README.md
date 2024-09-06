@@ -158,28 +158,69 @@ TAB_var <- as.data.frame(scores(RDAgeo_env, choices=c(1,2), display="bp"))
 ```
 I would like to prepare three plot highlighting WLDvsADM, latitude ranges and geographic regions
 
+> Wild vs Admixed
 ```
 ##color ADM vs WLD
 loading_RDAgeo_env<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_point(data = data_RDAgeo_env, aes(x=RDA1, y=RDA2, color=group), size = 4.5) +
+  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=group), size = 4.5) +
   scale_color_manual(values = c("blue", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 67 %") + ylab("RDA 2: 7 %") +
+  xlab("RDA 1: 71 %") + ylab("RDA 2: 11 %") +
   guides(color=guide_legend(title="Genetic group")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
-jpeg(file = "/lustre/rocchettil/RDA_geo_env.jpeg")
-loading_RDAgeo_env
+jpeg(file = "/lustre/rocchettil/RDA_env.jpeg")
+plot(loading_RDAgeo_env)
 dev.off()
 ```
 ![RDA_env](https://github.com/user-attachments/assets/b2576bb0-411f-4d0b-919e-481dd8153557)
+
+>Latitude ranges
+```
+#color latitude range
+loading_RDAgeo_env<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=latitude_range), size = 4.5) +
+  scale_color_manual(values = c("darkgreen","red", "darkorange")) + 
+  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
+  xlab("RDA 1: 71%") + ylab("RDA 2: 11 %") +
+  guides(color=guide_legend(title="latitude range")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
+jpeg(file = "/lustre/rocchettil/RDA_geo_env_lat_range.jpeg")
+plot(loading_RDAgeo_env)
+dev.off()
+```
+![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/5296d3ed-e6dc-4880-b246-6a0a3cd16fc0)
+
+
+
+>Geographic regions: France, Corse, Spain, Morocco
+````
+#color regions
+loading_RDAgeo_env<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=region), size = 4.5) +
+  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) + 
+  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
+  xlab("RDA 1: 71%") + ylab("RDA 2: 11 %") +
+  guides(color=guide_legend(title="latitude range")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
+jpeg(file = "/lustre/rocchettil/RDA_geo_env_region.jpeg")
+plot(loading_RDAgeo_env)
+dev.off()
+```
 
 
 The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio2 (Mean Diurnal Range (Mean of monthly (max temp - min temp)) and negatively with bio6 (Min Temperature of Coldest Month). It see,s that the wild population require cold temperature especially in winter, while the admixed group seems it reduces this need. From this early result I might suspect that the introgression of cultivated material can increase adaptation in the future climatic scenario where temperature level will rise.
 
 
-![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/5296d3ed-e6dc-4880-b246-6a0a3cd16fc0)
 
