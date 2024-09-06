@@ -114,13 +114,16 @@ The result show a correlation between environmental distance and geogrqphic dist
 
 ![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
 
-#Redundancy analysis
+# Redundancy analysis
+
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allo to dissect the the total genetic variance among the environment, geographic and demographic components. 
 In this first analysis I used the following RDA model to see if we can detect specif environmental variable diverging Wild vs Admixed genotypes or geographic regions.
  $` Gen \sim Environment + Geography `$
 
  
 ![RDA_geo_env](https://github.com/user-attachments/assets/2ca227ac-9432-402b-a408-0f1d92419d22)
+
+The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio2 (Mean Diurnal Range (Mean of monthly (max temp - min temp)) and negatively with bio6 (Min Temperature of Coldest Month). It see,s that the wild population require cold temperature especially in winter, while the admixed group seems it reduces this need. From this early result I might suspect that the introgression of cultivated material can increase adaptation in the future climatic scenario where temperature level will rise.
 
 
 ![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/9418f46a-ebd2-4731-b970-49cb7bfde7f2)
