@@ -118,22 +118,47 @@ The result show a correlation between environmental distance and geogrqphic dist
 
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allo to dissect the the total genetic variance among the environment, geographic and demographic components. 
 In this first analysis I used the following RDA model to see if we can detect specif environmental variable diverging Wild vs Admixed genotypes or geographic regions.
- $` Gen \sim Environment + Geography `$
-Here the code used:
+ $` Gen \sim Environment `$
+
+The follwing chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
+```
+#standardize bioclim variable
+PCbio = data359[ ,15:24]
+Env <- scale(PCbio, center=TRUE, scale=TRUE)
+Env <- as.data.frame(Env)
+
+#combining geographic, Popstructure, environmental (scaled) variables
+Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group,data359$latitude_range, data359$region, Env)
+names(Variables)[1]<- paste("geno")
+names(Variables)[2]<- paste("long")
+names(Variables)[3]<- paste("lat")
+names(Variables)[4]<- paste("group")
+names(Variables)[5]<- paste("latitude_range")
+names(Variables)[6]<- paste("region")
+ ```
+To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
 ```
-RDAgeo_env <- rda(genotype ~ long + lat + bio1+	bio2	+bio4+	bio6	+bio8	+bio9	+bio12	+bio14+	bio15	+bio19, data359)
-write.table(score, "Genotypevalue_RDAgeo_env")
+RDAgeo_env <- rda(genotype ~ bio1+bio2+bio4+bio6+bio8	+ bio9 + bio12 + bio14+	bio15	+ bio19, Variables)
+
+sqrt(vif.cca(RDAgeo_env))
+```
+
+In the next part I'm preparing the data for plotting
+```
+#write.table(score, "Genotypevalue_RDAgeo_env")
 summary(eigenvals(RDAgeo_env, model = "constrained"))
-data_RDAgeo_env <- read.table(file = "clipboard", 
-                              sep = "\t", header=TRUE)
-
-
-TAB_gen <- data.frame(geno_names = row.names(score), score)
-install.packages("ggrepel")
-library(ggrepel)
+#data_RDAgeo_env <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+score<-scores(RDAgeo_env , display = "sites")
+TAB_gen <- data.frame(geno = row.names(score), score)
+dataRDA<-merge(Variables, TAB_gen, by = "geno")
+#install.packages("ggrepel")
+#library(ggrepel)
 TAB_var <- as.data.frame(scores(RDAgeo_env, choices=c(1,2), display="bp"))
+```
+I would like to prepare three plot highlighting WLDvsADM, latitude ranges and geographic regions
 
+```
 ##color ADM vs WLD
 loading_RDAgeo_env<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
