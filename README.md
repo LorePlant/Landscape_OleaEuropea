@@ -223,7 +223,7 @@ dev.off()
 ![RDA_env_region](https://github.com/user-attachments/assets/d903b1ac-84df-4c44-a5c3-2712a4e00b22)
 
 
-The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature are forecast to increase.
+The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
 
 
 
