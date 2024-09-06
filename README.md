@@ -1,8 +1,8 @@
-# Landscape Olea europea
+## Landscape Olea europea
 
 This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
-
+# data input
 I started by entering the vcf into R using the vcfR package as follow
 ```
 library(vcfR)
@@ -45,6 +45,7 @@ dist.geo = dist(geo, method = "euclidean")
 #genetic distance
 distgenEUCL <- dist(gl.genoLAND, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
 ```
+#Mantel test
 With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if thre is a linear correlation betaeen ecological distqnce and genetic distance matrices
 ```
 # mantel test Genetic distance-ecological distance
@@ -113,7 +114,10 @@ The result show a correlation between environmental distance and geogrqphic dist
 
 ![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
 
-##RDA results
+#Redundancy analysis
+Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allo to dissect the the total genetic variance among the environment, geographic and demographic components. 
+In this first analysis I used the following RDA model to see if we can detect specif environmental variable diverging Wild vs Admixed genotypes or geographic regions.
+ $` Gen~ Environment + Geography `$
 ![RDA_geo_env](https://github.com/user-attachments/assets/2ca227ac-9432-402b-a408-0f1d92419d22)
 
 
