@@ -176,7 +176,9 @@ jpeg(file = "/lustre/rocchettil/RDA_env.jpeg")
 plot(loading_RDAgeo_env)
 dev.off()
 ```
-![RDA_env](https://github.com/user-attachments/assets/0a4cae74-bd1c-4603-bbd3-f331929f1378)
+
+![RDA_env](https://github.com/user-attachments/assets/af247ac7-2998-48a8-8f72-eed424309d55)
+
 
 >Latitude ranges
 ```
@@ -197,8 +199,7 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/b27eca53-580a-491d-84ee-f93f4c843f31)
-
+![RDA_env_region](https://github.com/user-attachments/assets/cfead7dc-e084-4460-a171-9fdc1cde5323)
 
 
 >Geographic regions: France, Corse, Spain, Morocco
@@ -220,7 +221,8 @@ jpeg(file = "/lustre/rocchettil/RDA_geo_env_region.jpeg")
 plot(loading_RDAgeo_env)
 dev.off()
 ```
-![RDA_env_region](https://github.com/user-attachments/assets/d903b1ac-84df-4c44-a5c3-2712a4e00b22)
+
+![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/06eb813c-7f89-44e9-af05-3a03d3890e15)
 
 
 The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
