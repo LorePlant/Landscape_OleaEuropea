@@ -154,6 +154,19 @@ sqrt(vif.cca(RDAgeo_env))
 |---------|----------|---------|----------|-----------|----------|---------|-----------|----------|-----------|
 |22.380360 | 8.374068 |25.856036| 15.688084 | 2.594527| 22.626527 | 5.328737 | 4.204566|3.296078 | 5.147522 |
 
+Considering the selection of significqnt ecological variable with possibly VIF<10 I selected bio2, bio6, bio8, bio12, bio14, bio15 and bio 19 and run again the VIF analysis
+
+```
+RDAgeo_env <- rda(genotype ~ bio2+bio6+bio8 + bio12 + bio14+	bio15	+ bio19, Variables)
+
+sqrt(vif.cca(RDAgeo_env))
+```
+
+|  bio2    |   bio6   |   bio8  |  bio12  |   bio14      |   bio15  |   bio19 |
+|---------|----------|---------|----------|-----------|----------|---------|
+3.878850 |5.603408| 2.153020 |4.910399 |2.588259 |3.121798| 4.757117|
+
+
 
 In the next part I'm preparing the data for plotting
 ```
