@@ -123,8 +123,8 @@ The result confirmes the significant (P<0.01) and moderate correlation (r:0.16) 
 
 # Redundancy analysis
 
-Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allo to dissect the the total genetic variance among the environment, geographic and demographic components. 
-In this first analysis I used the following RDA model to see if we can detect specif environmental variable diverging Wild vs Admixed genotypes or geographic regions.
+Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allows to dissect the the total genetic variance among the environment, geographic and demographic components. 
+In this first analysis I used RDA on the following linear model to see if we can detect specif environmental variables diverging Wild vs Admixed genotypes or geographic regions.
  $` Gen \sim Environment `$
 
 The follwing chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
