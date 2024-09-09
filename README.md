@@ -34,7 +34,7 @@ data359<- read.csv("dataset_359_olive.csv", header = TRUE)
 In the next chuck of codes we are going to define the Euclidean distqnce for geogrqphy, enviroment and genetic with the final aim to conduct a Mantel test
 ```
 #bioclim PCdata frame
-PCbio = data359[,13:22]
+PCbio = data359[,15:24]
 Env <- scale(PCbio, center=TRUE, scale=TRUE)
 dist.PCbio = dist(Env, method = "euclidean")
 
@@ -46,7 +46,7 @@ dist.geo = dist(geo, method = "euclidean")
 distgenEUCL <- dist(gl.genoLAND, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
 ```
 #Mantel test
-With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if thre is a linear correlation betaeen ecological distqnce and genetic distance matrices
+With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if there is a linear correlation between ecological distance and genetic distance matrices
 ```
 # mantel test Genetic distance-ecological distance
 geno_eco = mantel(distgenEUCL, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
@@ -77,7 +77,13 @@ plot(mm)
 dev.off()
 
 ```
-Considering the potential effect of geogrqphy in the ecological distance I used partial Mantel test which consider the correlation betaeen genetic distance and environmental distance considering geographic distance as covariate
+
+![mantel_olive_geno_eco](https://github.com/user-attachments/assets/9f58ecf7-48fb-4bfa-8181-8006f5a6b857)
+
+Results suggests a moderate (r: 0.21) though significant (P<0.01) correlation between genetic euclidean distance and ecological euclidean distances. 
+Considering the potential effect of geography in the ecological distance I used partial Mantel test which test for correlation between genetic distance and environmental distance considering geographic distance as covariate
+
+
 ```
 #partial Mantel test 
 partial_mantel = mantel.partial(distgenEUCL, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
@@ -110,9 +116,10 @@ jpeg(file = "/lustre/rocchettil/partial_mantel_olive.jpeg")
 plot(mp)
 dev.off()
 ```
-The result show a correlation between environmental distance and geogrqphic distance, where geographic distqnce increases ( darker dots color) environmental distqnce also increase. Considering the correlation with genetic distance there is no correlation suggesting a non significant IBE
+The result confirmes the significant (P<0.01) and moderate correlation (r:0.16) between environmental distance and genetic distance. Overall this result suggest a potential Isolation-by-envirnoment effect IBE on the sampled population.
 
-![mantel_olive](https://github.com/user-attachments/assets/314ccdd4-0ada-4c21-a1ae-f48330044726)
+![partial_mantel_olive](https://github.com/user-attachments/assets/dd34f232-d6d1-4e13-81d4-a06992c4e8f9)
+
 
 # Redundancy analysis
 
