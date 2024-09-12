@@ -295,8 +295,9 @@ gf <- gradientForest(cbind(geno_wild, Env_tab),
                      trace=TRUE)
 ```
 From this function we can print 
->the Environmental variable importance
->split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot 
+>the Environmental variable importance.
+
+>split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot.
 
 ```
 most_important <- names(importance(gf))[1:25]
