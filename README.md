@@ -251,7 +251,138 @@ dev.off()
 
 The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
 
+# Gradient Forest
+Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
+This code is still under construction. In this part I'm keeping track of the progresses achived.
+
+In this example I used a genotipic data file only from the Wild group
+```
+#Genomic offset runGF only on wild (file from Lison)
+install.packages("gradientForest", repos="http://R-Forge.R-project.org")
+
+library(vcfR)
+library(adegenet)
+
+setwd("/lustre/rocchettil")
+
+genoLAND.VCF <- read.vcfR("Oe9_genuine_clean_outliers.annotated.vcf")#import vcf file
+geno_genuine <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
+geno_wild<-as.data.frame(geno_genuine)
+
+for (i in 1:ncol(geno_wild))
+{
+  geno_wild[which(is.na(geno_wild[,i])),i] <- median(geno_wild[-which(is.na(geno_wild[,i])),i], na.rm=TRUE)
+}
+```
+I created with excell a table with the indivdual name and the different bioclimatic variable 
+
+```
+Env_tab<- read.table("Env_tab_WLD.txt")
+```
+To run the Gradient Forest function I used the gradient forest package.
+In this link there is a guide https://gradientforest.r-forge.r-project.org/biodiversity-survey.pdf
+
+Once we are sure that the geno_wild dataset and Env_tab dataset are in the same order for sample IDs we can apply the following code
+
+```
+library(gradientForest)
 
 
+gf <- gradientForest(cbind(geno_wild, Env_tab), 
+                     predictor.vars=colnames(Env_tab),
+                     response.vars=colnames(geno_wild), 
+                     ntree=500, #set the number of individual decision tree
+                     trace=TRUE)
+```
+From this function we can print 
+>the Environmental variable importance
+>split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot 
+
+```
+most_important <- names(importance(gf))[1:25]
+par(mgp = c(2, 0.75, 0))
+plot(gf)
+plot(gf, plot.type = "S", imp.vars = most_important,leg.posn = "topright", cex.legend = 0.4, cex.axis = 0.6, cex.lab = 0.7, line.ylab = 0.9, par.args = list(mgp = c(1.5,0.5, 0), mar = c(3.1, 1.5, 0.1, 1)))
+```
+Once the gradient forest model is created we can use it to estimate the adaptive component of each environmental pixel data. This function allows to map at the geographic level the biological adaptive space.
+To do so we use raster file from CHELSA dataset previosuly clipped for our study area using QGIS. Each raster represent a biovariable value for each pixel. 
+The first step is to stack all the raster information
+```
+library(raster)
+library("readxl")
+
+bio1<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio1_studyarea_ext.tif"))
+bio2<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio2_studyarea_ext.tif"))
+bio4<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio4_studyarea_ext.tif"))
+bio6<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio6_studyarea_ext.tif"))
+bio8<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio8_studyarea_ext.tif"))
+bio9<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio9_studyarea_ext.tif"))
+bio12<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio12masked_studyarea_ext.tif"))
+bio14<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio14_studyarea_ext.tif"))
+bio15<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio15_studyarea_ext.tif"))
+bio19<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio19_studyarea_ext.tif"))
+names(bio1) = 'bio1'
+names(bio2) = 'bio2'
+names(bio4) = 'bio4'
+names(bio6) = 'bio6'
+names(bio8) = 'bio8'
+names(bio9) = 'bio9'
+names(bio12) = 'bio12'
+names(bio14) = 'bio14'
+names(bio15) = 'bio15'
+names(bio19) = 'bio19'
+#stack the different raster file
+ras_current<-stack(c(bio1, bio2, bio4, bio6, bio8, bio9, bio12, bio14, bio15, bio19))
+```
+The next step will be to trasforme the raster file into a centered spatial grid (x,y) where each environmental variable is given by the average of each pixel.
+
+```
+#spatial grid
+
+coord_r<-rasterToPoints(ras_current, spatial = TRUE)
+map_pts<-data.frame(x = coordinates(coord_r)[,1], y=coordinates(coord_r)[,2], coord_r@data)
+```
+Subsequently we are going to use the GF function to estimate the adaptive value for each environmental data point.
+```
+library(tidyr)
+newmap_pts <- map_pts %>% drop_na()
+imp.var<- names(importance(gf))
+Trns_grid<-cbind(newmap_pts[, c("x", "y")], predict(gf, newmap_pts[, imp.var]))
+```
+The resulted data table is a list of grid cells with specific lat/long values and the estimate genetic adaptive value for each environmental variable.
+The multi-dimentinal adaptive space can be efficiently plotted using a PCA. The resuts provides a biplot for each cell grid colored follwing a palette scale. The same color palette will be used to plot the cell grid in lat/long space.
+```
+#color PCs
+PCs<- prcomp(Trns_grid[, imp.var])
+a1<- PCs$x[,1]
+a2<- PCs$x[,2]
+a3<- PCs$x[,3]
+r<- a1+a2
+g<- -a2
+b<- a3+a2-a1
+r<- (r-min(r))/(max(r)-min(r))*255
+g<- (g-min(g))/(max(g)-min(g))*255
+b<- (b-min(b))/(max(b)-min(b))*255
+
+#color biplot
+
+nvs <- dim(PCs$rotation)[1]
+vec<-c("bio15", "bio12", "bio14", "bio19", "bio1",  "bio2", "bio8",  "bio6",  "bio4", "bio9")
+lv <- length(vec)
+vind <- rownames(PCs$rotation) %in% vec
+scal <- 5
+xrng <- range(PCs$x[, 1], PCs$rotation[, 1]/scal) 
+yrng <- range(PCs$x[, 2], PCs$rotation[, 2]/scal)
+plot((PCs$x[, 1:2]), xlim = xrng, ylim = yrng, pch = ".", cex = 4, col = rgb(r, g, b, max = 255), asp = 1)
+points(PCs$rotation[!vind, 1:2]/scal, pch = "+")
+arrows(rep(0, lv), rep(0, lv), PCs$rotation[vec,1]/scal, PCs$rotation[vec, 2]/scal, length = 0.0625)
+jit <- 0.0015
+text(PCs$rotation[vec, 1]/scal + jit * sign(PCs$rotation[vec,1]), PCs$rotation[vec, 2]/scal + jit * sign(PCs$rotation[vec, 2]), labels = vec)
+                                                         
+  
+
+#plot grid
+plot(Trns_grid[, c("x", "y")], pch = ".", cex = 3, col= rgb(r,g,b,max=255))
+```
 
 
