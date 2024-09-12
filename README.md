@@ -294,7 +294,8 @@ gf <- gradientForest(cbind(geno_wild, Env_tab),
                      ntree=500, #set the number of individual decision tree
                      trace=TRUE)
 ```
-From this function we can print 
+From this function we can print:
+
 >the Environmental variable importance.
 
 >split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot.
@@ -386,4 +387,6 @@ text(PCs$rotation[vec, 1]/scal + jit * sign(PCs$rotation[vec,1]), PCs$rotation[v
 plot(Trns_grid[, c("x", "y")], pch = ".", cex = 3, col= rgb(r,g,b,max=255))
 ```
 
+![adaptive_PCA_space](https://github.com/user-attachments/assets/bc91fde3-600a-4eee-97a1-d11ab677eb2f)
 
+![adaptive_geo_space](https://github.com/user-attachments/assets/fe373f9c-8c3a-4b74-af5c-3592949d9ffa)
