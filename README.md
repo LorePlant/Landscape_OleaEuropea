@@ -9,9 +9,11 @@ library(vcfR)
 library(adegenet)
 
 setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("Oe9_admixed_and_genuine_wild_clean.mac1.maf.vcf")#import vcf file
+genoLAND.VCF <- read.vcfR("359_Olive_west.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
+genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+
 ```
 Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
 
