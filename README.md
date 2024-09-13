@@ -33,6 +33,19 @@ The following excel file data359 which includes uncorrelated (r<0.7) bioclimatic
 ```
 data359<- read.csv("dataset_359_olive.csv", header = TRUE)
 ```
+# Mantel test
+The Mantel test allows to conduct a linear regression analysis between the genetic distance and environmental distance. The significance of this regression suggests a Isolation by Environment IBE effect, where individual in ecologically similar locations they are more genetically similar compare to individuals in ecologically diverse locations.
+
+As first step I'm going to estimate the genetic distance as pairwise FST among the 27 populations using the R package Hierfstat.
+```
+library("hierfstat")
+pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for each individual
+#convert genInd and pop in hierfstat
+hierfstat<-genind2hierfstat(gl.genoLAND ,pop=pops)
+genet.dist(hierfstat,diploid=TRUE,method="WC84")
+```
+
+
 In the next chuck of codes we are going to define the Euclidean distqnce for geogrqphy, enviroment and genetic with the final aim to conduct a Mantel test
 ```
 #bioclim PCdata frame
