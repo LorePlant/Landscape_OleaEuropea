@@ -145,18 +145,19 @@ In this first analysis I used RDA on the following linear model to see if we can
 The follwing chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
 ```
 #standardize bioclim variable
-PCbio = data359[ ,15:24]
+PCbio = data359[ ,16:25]
 Env <- scale(PCbio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
 #combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group,data359$latitude_range, data359$region, Env)
+Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group,data359$latitude_range, data359$region, data359$PC1, Env)
 names(Variables)[1]<- paste("geno")
 names(Variables)[2]<- paste("long")
 names(Variables)[3]<- paste("lat")
 names(Variables)[4]<- paste("group")
 names(Variables)[5]<- paste("latitude_range")
 names(Variables)[6]<- paste("region")
+names(Variables)[7]<- paste("PC1")
  ```
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
