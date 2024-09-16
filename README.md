@@ -333,6 +333,7 @@ manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
 manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
 dev.off()
+```
 
 
 
