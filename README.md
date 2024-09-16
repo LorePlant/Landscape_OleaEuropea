@@ -23,7 +23,7 @@ for (i in 1:ncol(genotype))
   genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
 }
 
-write.table(genotype, "geno_data_west_olive_imputated.txt")
+write.table(genotype, "geno_359_west_olive_imputated.txt")
 
 #once the dataset was created I can enter the data table with read.table
 genotype<- read.table("geno_data_west_olive_imputated.txt", header=TRUE)
