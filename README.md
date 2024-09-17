@@ -342,7 +342,56 @@ dev.off()
 ![Manh_RDA_temp](https://github.com/user-attachments/assets/80bbacf3-b334-4cb7-af18-ec00780c8522)
 
 
+```
+RDA_prec <- rda(genotype ~ bio12 + bio14+	bio15	+ bio19 +  Condition(PC1 + lat + long), Variables)
+summary(eigenvals(RDA_temp, model = "constrained"))
+library(robust)
+remotes::install_github("koohyun-kwon/rdadapt")
+source("./src/rdadapt.R")
+rdadapt<-function(rda,K)
+{
+  zscores<-rda$CCA$v[,1:as.numeric(K)]
+  resscale <- apply(zscores, 2, scale)
+  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
+  lambda <- median(resmaha)/qchisq(0.5,df=K)
+  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
+  qval <- qvalue(reschi2test)
+  q.values_rdadapt<-qval$qvalues
+  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
+}
 
+rdadapt_env<- rdadapt(RDA_temp, 2)
+## P-values threshold after Bonferroni correction
+thres_env <- 0.05/length(rdadapt_env$p.values)
+## Identifying the loci that are below the p-value threshold
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
+write.table(outliers, "Bonferroni_temp")
+qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
+outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
+
+locus_scores <- scores(RDA_temp, choices=c(1:2), display="species", scaling="none")
+TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
+TAB_loci$type <- "Not associated"
+TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
+TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
+TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
+TAB_var <- as.data.frame(scores(RDA_temp, choices=c(1,2), display="bp"))
+loading_temp<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
+  scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 38.4%") + ylab("RDA 2: 33.5%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_temp
+jpeg(file = "/lustre/rocchettil/RDA_temp_biplot.jpeg")
+plot(loading_temp)
+dev.off()
+```
 
 
 
