@@ -400,13 +400,14 @@ write.table(qvalue, "Prec_GEA_Olive")
 #plotting Mhanattan plot using the library qqman
 
 library(qqman)
-Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
+Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
 dev.off()
 ```
+![RDA_prec_biplot](https://github.com/user-attachments/assets/4d04da63-2dde-435f-8d53-97a4f21d7bee)
 
-![RDA_prec_biplot](https://github.com/user-attachments/assets/e15b939c-8a1d-4107-970f-9ab14a47bd5b)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/ab4ea9be-a55d-4d4f-bab5-befaed1a0384)
 
 
 # Gradient Forest
