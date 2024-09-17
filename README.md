@@ -276,6 +276,8 @@ RDA for GEA discovery
 Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1) and Isolation by distanc (lqtitude and longitude) using them as covariates in the RDA model
 As first attempt I decided to run the anlysis seperate for temperature and precipitation variables.
 
+>Temperature
+
 ```
 RDA_temp <- rda(genotype ~ bio2+bio6+bio8 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_temp, model = "constrained"))
@@ -341,7 +343,7 @@ dev.off()
 
 ![Manh_RDA_temp](https://github.com/user-attachments/assets/80bbacf3-b334-4cb7-af18-ec00780c8522)
 
-
+>Precipitation
 ```
 RDA_prec <- rda(genotype ~ bio12 + bio14+	bio15	+ bio19 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
@@ -394,6 +396,14 @@ dev.off()
 
 
 write.table(qvalue, "Prec_GEA_Olive")
+
+#plotting Mhanattan plot using the library qqman
+
+library(qqman)
+Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for temperature
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
+jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
+dev.off()
 ```
 
 ![RDA_prec_biplot](https://github.com/user-attachments/assets/e15b939c-8a1d-4107-970f-9ab14a47bd5b)
