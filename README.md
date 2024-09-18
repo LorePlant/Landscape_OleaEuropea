@@ -9,7 +9,7 @@ library(vcfR)
 library(adegenet)
 
 setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("359_Olive_west.vcf.recode.vcf")#import vcf file
+genoLAND.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
 genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
@@ -23,7 +23,7 @@ for (i in 1:ncol(genotype))
   genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
 }
 
-write.table(genotype, "geno_359_west_olive_imputated.txt")
+write.table(genotype, "geno_359_west_olive_MAF005__imputated.txt")
 
 #once the dataset was created I can enter the data table with read.table
 genotype<- read.table("geno_359_west_olive_imputated.txt", header=TRUE)
@@ -208,7 +208,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("blue", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 71 %") + ylab("RDA 2: 11 %") +
+  xlab("RDA 1: 73 %") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="Genetic group")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -230,7 +230,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","red", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 71%") + ylab("RDA 2: 11 %") +
+  xlab("RDA 1: 73%") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -253,7 +253,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 71%") + ylab("RDA 2: 11 %") +
+  xlab("RDA 1: 73%") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -300,7 +300,7 @@ rdadapt_env<- rdadapt(RDA_temp, 2)
 ## P-values threshold after Bonferroni correction
 thres_env <- 0.05/length(rdadapt_env$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
 write.table(outliers, "Bonferroni_temp")
 qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
 outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
@@ -402,7 +402,7 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(4.06E-05), genomewideline = -log10(3.80E-07))
 dev.off()
 ```
 ![RDA_prec_biplot](https://github.com/user-attachments/assets/4d04da63-2dde-435f-8d53-97a4f21d7bee)
