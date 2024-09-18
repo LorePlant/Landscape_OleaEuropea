@@ -414,6 +414,119 @@ dev.off()
 
 ![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/f95965ff-5193-4bb5-8c6e-1c9e3179b80e)
 
+> Adaptive index projection
+Adaptive indeix function Capblach
+```
+adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", scale_env, center_env){
+  
+  # Formatting environmental rasters for projection
+  var_env_proj_pres <- as.data.frame(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]]))
+  
+  # Standardization of the environmental variables
+  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+  
+  # Predicting pixels genetic component based on RDA axes
+  Proj_pres <- list()
+  if(method == "loadings"){
+    for(i in 1:K){
+      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(apply(var_env_proj_RDA[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))), crs = crs(env_pres))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Prediction with RDA model and linear combinations
+  if(method == "predict"){ 
+    pred <- predict(RDA, var_env_proj_RDA[,names(RDA$CCA$biplot[,i])], type = "lc")
+    for(i in 1:K){
+      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred[,i])), crs = crs(env_pres))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Returning projections for current climates for each RDA axis
+  return(Proj_pres = Proj_pres)
+}
+```
+
+
+```
+geno_enrich<-genotype[which(rdadapt_env$q.values<0.05)]
+RDA_temp_enriched<-rda(geno_enrich ~ bio2+bio6+bio8 +  Condition(PC1 + lat + long), Variables)
+summary(eigenvals(RDA_temp_enriched, model = "constrained"))
+jpeg(file = "/lustre/rocchettil/RDA_tempenriched_biplot.jpeg")
+plot(RDA_temp_enriched)
+dev.off()
+
+## Recovering scaling coefficients
+library('dplyr')
+PCbio = data359[ ,16:25]
+tempvar = PCbio %>% select('bio2','bio6', 'bio8')
+Temp <- scale(tempvar, center=TRUE, scale=TRUE)
+scale_Temp <- attr(Temp, 'scaled:scale')
+center_Temp <- attr(Temp, 'scaled:center')
+
+
+Env <- scale(PCbio, center=TRUE, scale=TRUE)
+
+scale_env <- attr(Env, 'scaled:scale')
+center_env <- attr(Env, 'scaled:center')
+
+# ras temperature
+library(raster)
+library("readxl")
+
+
+bio2<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio2_studyarea_ext.tif"))
+bio6<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio6_studyarea_ext.tif"))
+bio8<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio8_studyarea_ext.tif"))
+names(bio2) = 'bio2'
+names(bio6) = 'bio6'
+names(bio8) = 'bio8'
+#stack the different raster file
+ras_current_temp<-stack(c(bio2,bio6, bio8))
+
+## Function to predict the adaptive index across the landscape
+source("./src/adaptive_index.R")
+
+res_RDA_temp_proj_current <- adaptive_index(RDA = RDA_temp_enriched, K = 2, env_pres = ras_current_temp, range = range, method = "loadings", scale_env = scale_Temp, center_env = center_Temp)
+projection<- stack(c(res_RDA_temp_proj_current$RDA1, res_RDA_temp_proj_current$RDA2))
+plot(projection)
+
+## Vectorization of the climatic rasters for ggplot
+RDA_proj <- list(res_RDA_temp_proj_current$RDA1, res_RDA_temp_proj_current$RDA2)
+RDA_proj <- lapply(RDA_proj, function(x) rasterToPoints(x))
+for(i in 1:length(RDA_proj)){
+  RDA_proj[[i]][,3] <- (RDA_proj[[i]][,3]-min(RDA_proj[[i]][,3]))/(max(RDA_proj[[i]][,3])-min(RDA_proj[[i]][,3]))
+}
+
+## Adaptive genetic turnover projected across lodgepole pine range for RDA1 and RDA2 indexes
+TAB_RDA <- as.data.frame(do.call(rbind, RDA_proj[1:2]))
+colnames(TAB_RDA)[3] <- "value"
+TAB_RDA$variable <- factor(c(rep("RDA1", nrow(RDA_proj[[1]])), rep("RDA2", nrow(RDA_proj[[2]]))), levels = c("RDA1","RDA2"))
+distrib_temp<- ggplot(data = TAB_RDA) + 
+  geom_tile(aes(x = x, y = y, fill = cut(value, breaks=seq(0, 1, length.out=10), include.lowest = T))) + 
+  scale_fill_viridis_d(alpha = 0.8, direction = -1, option = "A", labels = c("Negative scores","","","","Intermediate scores","","","","Positive scores")) +
+  #coord_sf(xlim = c(-148, -98), ylim = c(35, 64), expand = FALSE) +
+  xlab("Longitude") + ylab("Latitude") +
+  guides(fill=guide_legend(title="Adaptive index")) +
+  facet_grid(~ variable) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=11))
+jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg")
+plot(distrib_temp)
+dev.off()
+```
+![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
+
+
+![Adaptive_temp_proj](https://github.com/user-attachments/assets/814a0784-39be-40b1-94b0-13ac0cb3cc36)
+
+
+
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
