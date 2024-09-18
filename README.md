@@ -523,7 +523,7 @@ dev.off()
 ![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
 
 
-![Adaptive_temp_proj](https://github.com/user-attachments/assets/814a0784-39be-40b1-94b0-13ac0cb3cc36)
+![Adaptive_temp_proj](https://github.com/user-attachments/assets/eab2225b-852c-47e3-a9cf-91d32886bc86)
 
 
 
