@@ -405,12 +405,14 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(4.06E-05), genomewideline = -log10(3.80E-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000100972), genomewideline = -log10(2.015625e-07))
 dev.off()
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/4d04da63-2dde-435f-8d53-97a4f21d7bee)
+![RDA_prec_biplot](https://github.com/user-attachments/assets/ba7f569c-8571-4183-bf4d-1058189d68be)
 
-![Manh_RDA_prec](https://github.com/user-attachments/assets/ab4ea9be-a55d-4d4f-bab5-befaed1a0384)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/21819ab9-1dda-4f99-94a7-3ceb7cdd9faa)
+
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/f95965ff-5193-4bb5-8c6e-1c9e3179b80e)
 
 
 # Gradient Forest
