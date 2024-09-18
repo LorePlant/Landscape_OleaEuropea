@@ -339,9 +339,9 @@ jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
 manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
 dev.off()
 ```
-![RDA_temp_biplot](https://github.com/user-attachments/assets/3b3cb7e3-995c-4115-907e-5f135b703f8b)
+![RDA_temp_biplot](https://github.com/user-attachments/assets/6c112cf4-6e82-4d4c-8a01-85f69d6d5b13)
 
-![Manh_RDA_temp](https://github.com/user-attachments/assets/80bbacf3-b334-4cb7-af18-ec00780c8522)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/dea10e60-a827-4731-959c-860036c46822)
 
 >Precipitation
 ```
