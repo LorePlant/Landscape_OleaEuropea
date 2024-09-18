@@ -343,6 +343,9 @@ dev.off()
 
 ![Manh_RDA_temp](https://github.com/user-attachments/assets/dea10e60-a827-4731-959c-860036c46822)
 
+![_Phist__Manh_RDA_temp](https://github.com/user-attachments/assets/0aca91bd-a4ab-4a4a-8454-12d284f02499)
+
+
 >Precipitation
 ```
 RDA_prec <- rda(genotype ~ bio12 + bio14+	bio15	+ bio19 +  Condition(PC1 + lat + long), Variables)
