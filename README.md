@@ -334,9 +334,9 @@ write.table(qvalue, "Temp_GEA_Olive")
 
 library(qqman)
 Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(3.797084e-07))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(2.015625e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(3.797084e-07))
 dev.off()
 ```
 ![RDA_temp_biplot](https://github.com/user-attachments/assets/6c112cf4-6e82-4d4c-8a01-85f69d6d5b13)
@@ -405,12 +405,12 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000100972), genomewideline = -log10(2.015625e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000100972), genomewideline = -log10(3.797084e-07))
 dev.off()
 ```
 ![RDA_prec_biplot](https://github.com/user-attachments/assets/ba7f569c-8571-4183-bf4d-1058189d68be)
 
-![Manh_RDA_prec](https://github.com/user-attachments/assets/21819ab9-1dda-4f99-94a7-3ceb7cdd9faa)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/f8932f0b-b3dd-48a4-b6b1-287850993980)
 
 ![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/f95965ff-5193-4bb5-8c6e-1c9e3179b80e)
 
