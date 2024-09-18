@@ -341,7 +341,7 @@ dev.off()
 ```
 ![RDA_temp_biplot](https://github.com/user-attachments/assets/6c112cf4-6e82-4d4c-8a01-85f69d6d5b13)
 
-![Manh_RDA_temp](https://github.com/user-attachments/assets/dea10e60-a827-4731-959c-860036c46822)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/99a559c2-b738-4fab-ade2-79b947ad5b29)
 
 ![_Phist__Manh_RDA_temp](https://github.com/user-attachments/assets/0aca91bd-a4ab-4a4a-8454-12d284f02499)
 
