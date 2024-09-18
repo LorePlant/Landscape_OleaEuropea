@@ -415,7 +415,9 @@ dev.off()
 ![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/f95965ff-5193-4bb5-8c6e-1c9e3179b80e)
 
 > Adaptive index projection
-Adaptive indeix function Capblach
+Adaptive indeix function Capblach.
+Using the raster environmental data the function allows to predict the adaptie value of each pixel
+
 ```
 adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", scale_env, center_env){
   
@@ -451,7 +453,7 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
   return(Proj_pres = Proj_pres)
 }
 ```
-
+Run a RDA analysis using only the GEA marker previously identify using a FDR (q<0.05) threshold
 
 ```
 geno_enrich<-genotype[which(rdadapt_env$q.values<0.05)]
@@ -460,8 +462,13 @@ summary(eigenvals(RDA_temp_enriched, model = "constrained"))
 jpeg(file = "/lustre/rocchettil/RDA_tempenriched_biplot.jpeg")
 plot(RDA_temp_enriched)
 dev.off()
+```
+![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
 
-## Recovering scaling coefficients
+> Recovering scaling coefficients
+Create a table of scaled temperature variable
+```
+
 library('dplyr')
 PCbio = data359[ ,16:25]
 tempvar = PCbio %>% select('bio2','bio6', 'bio8')
@@ -474,7 +481,9 @@ Env <- scale(PCbio, center=TRUE, scale=TRUE)
 
 scale_env <- attr(Env, 'scaled:scale')
 center_env <- attr(Env, 'scaled:center')
-
+```
+Enter the raster file for the specific bioclimatic variable for current climatic situation
+```
 # ras temperature
 library(raster)
 library("readxl")
@@ -488,7 +497,10 @@ names(bio6) = 'bio6'
 names(bio8) = 'bio8'
 #stack the different raster file
 ras_current_temp<-stack(c(bio2,bio6, bio8))
+```
+Predict tha adaptive index for each pixel grid
 
+```
 ## Function to predict the adaptive index across the landscape
 source("./src/adaptive_index.R")
 
@@ -520,12 +532,114 @@ jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg", height=1500, width=300
 plot(distrib_temp)
 dev.off()
 ```
-![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
-
 
 ![Adaptive_temp_proj](https://github.com/user-attachments/assets/97f90439-c8c8-419e-b158-620d281a63a1)
 
 
+>Genomic offset RDA based
+
+```
+#future temp scenario
+# ras temperature
+library(raster)
+library("readxl")
+
+
+bio2<- raster(paste("/lustre/rocchettil/bio2_ext_studyarea.tif"))
+bio6<- raster(paste("/lustre/rocchettil/bio6_ext_studyarea.tif"))
+bio8<- raster(paste("/lustre/rocchettil/bio8_ext_studyarea.tif"))
+names(bio2) = 'bio2'
+names(bio6) = 'bio6'
+names(bio8) = 'bio8'
+#stack the different raster file
+ras_2050_temp<-stack(c(bio2,bio6, bio8))
+```
+function genomic offset
+```
+#### Function to predict genomic offset from a RDA model
+genomic_offset <- function(RDA, K, env_pres, env_fut, range = NULL, method = "loadings", scale_env, center_env){
+  
+  
+  # Formatting and scaling environmental rasters for projection
+  var_env_proj_pres <- as.data.frame(scale(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+  var_env_proj_fut <- as.data.frame(scale(rasterToPoints(env_fut[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+
+  # Predicting pixels genetic component based on the loadings of the variables
+  if(method == "loadings"){
+    # Projection for each RDA axis
+    Proj_pres <- list()
+    Proj_fut <- list()
+    Proj_offset <- list()
+    for(i in 1:K){
+      # Current climates
+      ras_pres <- env_pres[[1]]
+      ras_pres[!is.na(ras_pres)] <- as.vector(apply(var_env_proj_pres[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+      # Future climates
+      ras_fut <- env_fut[[1]]
+      ras_fut[!is.na(ras_fut)] <- as.vector(apply(var_env_proj_fut[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))
+      Proj_fut[[i]] <- ras_fut
+      names(ras_fut) <- paste0("RDA_fut_", as.character(i))
+      names(Proj_fut)[i] <- paste0("RDA", as.character(i))
+      # Single axis genetic offset 
+      Proj_offset[[i]] <- abs(Proj_pres[[i]] - Proj_fut[[i]])
+      names(Proj_offset)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Predicting pixels genetic component based on predict.RDA
+  if(method == "predict"){ 
+    # Prediction with the RDA model and both set of envionments 
+    pred_pres <- predict(RDA, var_env_proj_pres[,-c(1,2)], type = "lc")
+    pred_fut <- predict(RDA, var_env_proj_fut[,-c(1,2)], type = "lc")
+    # List format
+    Proj_offset <- list()    
+    Proj_pres <- list()
+    Proj_fut <- list()
+    for(i in 1:K){
+      # Current climates
+      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred_pres[,i])), crs = crs(env_pres))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+      # Future climates
+      ras_fut <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred_fut[,i])), crs = crs(env_pres))
+      names(ras_fut) <- paste0("RDA_fut_", as.character(i))
+      Proj_fut[[i]] <- ras_fut
+      names(Proj_fut)[i] <- paste0("RDA", as.character(i))
+      # Single axis genetic offset 
+      Proj_offset[[i]] <- abs(Proj_pres[[i]] - Proj_fut[[i]])
+      names(Proj_offset)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Weights based on axis eigen values
+  weights <- RDA$CCA$eig/sum(RDA$CCA$eig)
+  
+  # Weighing the current and future adaptive indices based on the eigen values of the associated axes
+  Proj_offset_pres <- do.call(cbind, lapply(1:K, function(x) rasterToPoints(Proj_pres[[x]])[,-c(1,2)]))
+  Proj_offset_pres <- as.data.frame(do.call(cbind, lapply(1:K, function(x) Proj_offset_pres[,x]*weights[x])))
+  Proj_offset_fut <- do.call(cbind, lapply(1:K, function(x) rasterToPoints(Proj_fut[[x]])[,-c(1,2)]))
+  Proj_offset_fut <- as.data.frame(do.call(cbind, lapply(1:K, function(x) Proj_offset_fut[,x]*weights[x])))
+  
+  # Predict a global genetic offset, incorporating the K first axes weighted by their eigen values
+  ras <- Proj_offset[[1]]
+  ras[!is.na(ras)] <- unlist(lapply(1:nrow(Proj_offset_pres), function(x) dist(rbind(Proj_offset_pres[x,], Proj_offset_fut[x,]), method = "euclidean")))
+  names(ras) <- "Global_offset"
+  Proj_offset_global <- ras
+  
+  # Return projections for current and future climates for each RDA axis, prediction of genetic offset for each RDA axis and a global genetic offset 
+  return(list(Proj_pres = Proj_pres, Proj_fut = Proj_fut, Proj_offset = Proj_offset, Proj_offset_global = Proj_offset_global, weights = weights[1:K]))
+}
+```
+
+Genomic offset projection
+```
+res_RDA_temp_proj_2050 <- genomic_offset(RDA = RDA_temp_enriched, K = 2, env_pres = ras_current_temp, env_fut = ras_2050_temp, range = range, method = "loadings", scale_env = scale_Temp, center_env = center_Temp)
+
+```
 
 
 
