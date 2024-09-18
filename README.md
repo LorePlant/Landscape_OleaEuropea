@@ -514,16 +514,17 @@ distrib_temp<- ggplot(data = TAB_RDA) +
   xlab("Longitude") + ylab("Latitude") +
   guides(fill=guide_legend(title="Adaptive index")) +
   facet_grid(~ variable) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=11))
-jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg")
+  theme_bw(base_size = 7, base_family = "Times") +
+  theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=7))
+jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg", height=1500, width=3000, res=600)
 plot(distrib_temp)
 dev.off()
 ```
 ![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
 
 
-![Adaptive_temp_proj](https://github.com/user-attachments/assets/eab2225b-852c-47e3-a9cf-91d32886bc86)
+![Adaptive_temp_proj](https://github.com/user-attachments/assets/97f90439-c8c8-419e-b158-620d281a63a1)
+
 
 
 
