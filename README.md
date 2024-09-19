@@ -171,7 +171,12 @@ sqrt(vif.cca(RDAgeo_env))
 |29.004607 | 24.449079  |49.46922| 15.210764 | 29.510669| 3.320524 |30.741673 |22.032603|39.983301| 6.3260372 |5.625297|4.254793|3.822378 | 5.766060|
 
 
-Considering the selection of significqnt ecological variable with possibly VIF<10 I selected bio2, bio6, bio8, bio12, bio14, bio15 and bio 19 and run again the VIF analysis
+I attempted to select significant ecological variables with a Variance Inflation Factor (VIF) lower than 10. Considering the termopluviometric graph for the study area, which includes France, Spain, and Morocco, we observe a common bell-shaped temperature distribution. Temperatures are higher in the spring and summer, while lower during the autumn and winter. However, precipitation patterns differ across regions. For example, the internal regions of France experience a more uniform distribution of precipitation throughout the year.
+
+To address specific temperature and precipitation adaptations, I carefully selected bioclimatic variables exluding those reffering temperature and precipitation to the wettest or driest quarters, focusing instead on variables that reflect temperature and precipitation variations during the warmest and coldest quarters. Following this selection, I checked the Variance Inflation Factor (VIF) for the chosen variables to ensure they were appropriate.
+
+
+I selected bio2, bio6, bio8, bio12, bio14, bio15 and bio 19 and run again the VIF analysis
 
 ```
 RDAgeo_env <- rda(genotype ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19, Variables)
@@ -183,7 +188,7 @@ sqrt(vif.cca(RDAgeo_env))
 |---------|----------|---------|----------|-----------|----------|
 1.655992| 1.287833 |2.315390 |2.776476 |1.942473| 1.371975|
 
-
+The variable selected showed low inflation factor due to correlation
 
 
 In the next part I'm preparing the data for plotting
@@ -219,7 +224,8 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-![RDA_env](https://github.com/user-attachments/assets/af247ac7-2998-48a8-8f72-eed424309d55)
+![RDA_env](https://github.com/user-attachments/assets/8e2b2e1a-b648-48d4-ac8f-bf072b731df5)
+
 
 
 >Latitude ranges
@@ -241,7 +247,9 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-![RDA_env_region](https://github.com/user-attachments/assets/cfead7dc-e084-4460-a171-9fdc1cde5323)
+
+![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/77470479-2423-4acd-8781-eb9ec1f32a3d)
+
 
 
 >Geographic regions: France, Corse, Spain, Morocco
@@ -264,7 +272,9 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/06eb813c-7f89-44e9-af05-3a03d3890e15)
+
+![RDA_geo_env_region](https://github.com/user-attachments/assets/31019223-6a4c-4687-bbc6-d4965e3315a8)
+
 
 
 The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
