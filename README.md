@@ -145,7 +145,7 @@ In this first analysis I used RDA on the following linear model to see if we can
 The follwing chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
 ```
 #standardize bioclim variable
-PCbio = data359[ ,16:25]
+PCbio = data359[ ,16:29]
 Env <- scale(PCbio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
@@ -162,25 +162,27 @@ names(Variables)[7]<- paste("PC1")
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
 ```
-RDAgeo_env <- rda(genotype ~ bio1+bio2+bio4+bio6+bio8	+ bio9 + bio12 + bio14+	bio15	+ bio19, Variables)
+RDAgeo_env <- rda(genotype ~ bio1+bio2+bio4+ bio5 + bio6+bio8	+ bio9 + bio10+bio11+ bio12 + bio14+	bio15	+ bio18 + bio19, Variables)
 
 sqrt(vif.cca(RDAgeo_env))
 ```
-| bio1    |  bio2    |  bio4   |   bio6   |   bio8    |  bio9   |  bio12  |   bio14      |   bio15  |   bio19 |
-|---------|----------|---------|----------|-----------|----------|---------|-----------|----------|-----------|
-|22.380360 | 8.374068 |25.856036| 15.688084 | 2.594527| 22.626527 | 5.328737 | 4.204566|3.296078 | 5.147522 |
+| bio1    |  bio2    |  bio4   |   bio5   |   bio6    |  bio8   |   bio9 | bio10 |   bio11      |   bio12  |   bio14 | bio15 | bio18 | bio19 |
+|---------|----------|---------|----------|-----------|----------|---------|-----------|----------|---------|--------|-------|-----|---------|
+|29.004607 | 24.449079  |49.46922| 15.210764 | 29.510669| 3.320524 |30.741673 |22.032603|39.983301| 6.3260372 |5.625297|4.254793|3.822378 | 5.766060|
+
 
 Considering the selection of significqnt ecological variable with possibly VIF<10 I selected bio2, bio6, bio8, bio12, bio14, bio15 and bio 19 and run again the VIF analysis
 
 ```
-RDAgeo_env <- rda(genotype ~ bio2+bio6+bio8 + bio12 + bio14+	bio15	+ bio19, Variables)
+RDAgeo_env <- rda(genotype ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19, Variables)
 
 sqrt(vif.cca(RDAgeo_env))
 ```
 
-|  bio2    |   bio6   |   bio8  |  bio12  |   bio14      |   bio15  |   bio19 |
-|---------|----------|---------|----------|-----------|----------|---------|
-3.878850 |5.603408| 2.153020 |4.910399 |2.588259 |3.121798| 4.757117|
+|  bio2    |   bio10   |   bio11  |  bio15  |   bio18  |   bio19  | 
+|---------|----------|---------|----------|-----------|----------|
+1.655992| 1.287833 |2.315390 |2.776476 |1.942473| 1.371975|
+
 
 
 
@@ -208,7 +210,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("blue", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 73 %") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 74 %") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="Genetic group")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -230,7 +232,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","red", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 73%") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 74%") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -253,7 +255,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 73%") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 74%") + ylab("RDA 2: 8 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
