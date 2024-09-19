@@ -420,7 +420,94 @@ dev.off()
 ```
 ![RDA_prec_biplot](https://github.com/user-attachments/assets/2f6a3ecc-9928-4c98-95f7-7781aea76802)
 ![Manh_RDA_prec](https://github.com/user-attachments/assets/8c493917-6826-4495-8ece-25f1076237f0)
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/2c73984d-4a99-4dc4-8450-463bf0a8a504)
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/b539de2e-1114-4c09-8ca4-16e627b53b27)
+
+>All together
+
+In this attempt I am going to run the GEA analysis considering all the bioclimatic variable selected. The derived GEA will be used for the adaptive index projection and Genomic offset estimation
+
+```
+RDA_all <- rda(genotype ~ 	bio2 + bio10 + bio11 + bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
+summary(eigenvals(RDA_all, model = "constrained"))
+library(robust)
+remotes::install_github("koohyun-kwon/rdadapt")
+source("./src/rdadapt.R")
+rdadapt<-function(rda,K)
+{
+  zscores<-rda$CCA$v[,1:as.numeric(K)]
+  resscale <- apply(zscores, 2, scale)
+  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
+  lambda <- median(resmaha)/qchisq(0.5,df=K)
+  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
+  qval <- qvalue(reschi2test)
+  q.values_rdadapt<-qval$qvalues
+  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
+}
+
+rdadapt_env<- rdadapt(RDA_all, 2)
+## P-values threshold after Bonferroni correction
+thres_env <- 0.05/length(rdadapt_env$p.values)
+## Identifying the loci that are below the p-value threshold
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
+
+qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
+outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
+
+locus_scores <- scores(RDA_all, choices=c(1:2), display="species", scaling="none")
+TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
+TAB_loci$type <- "Not associated"
+TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
+TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
+TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
+TAB_var <- as.data.frame(scores(RDA_all, choices=c(1,2), display="bp"))
+loading_all<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
+  scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 44%") + ylab("RDA 2: 32%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_all
+jpeg(file = "/lustre/rocchettil/RDA_all_biplot.jpeg")
+plot(loading_all)
+dev.off()
+```
+To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the previously identified GEA SNPs. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
+
+```
+#partial redundancy analysis (RDA only with GEA QTL)
+geno_all_enrich<-genotype[which(rdadapt_env$q.values<0.05)]
+RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
+summary(eigenvals(RDA_all_enriched, model = "constrained"))
+
+
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(score), scores(RDA_all_enriched , display = "sites"))
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
+loading_geno_all_enriched<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("blue", "darkorange")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=10*RDA1, y=10*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 46%") + ylab("RDA 2: 26%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot.jpeg")
+plot(loading_geno_all_enriched)
+dev.off()
+```
+![RDA_all_geno_biplot](https://github.com/user-attachments/assets/5c7bdf6e-a3fc-4900-acf9-69ecfd965ac2)
+
 
 
 > Adaptive index projection
