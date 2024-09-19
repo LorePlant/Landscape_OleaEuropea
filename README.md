@@ -284,11 +284,11 @@ RDA can be used for variance partitioning
 
 
 
-RDA for GEA discovery
+#RDA for GEA discovery
 Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1) and Isolation by distanc (lqtitude and longitude) using them as covariates in the RDA model
 As first attempt I decided to run the anlysis seperate for temperature and precipitation variables.
 
-> #Temperature
+>Temperature
 
 ```
 RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + lat + long), Variables)
@@ -356,7 +356,7 @@ dev.off()
 ![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/1c07b997-b249-4e1a-b43b-f0881ce38239)
 
 
-> #Precipitation
+> Precipitation
 ```
 RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
@@ -514,7 +514,7 @@ dev.off()
 
 
 
-> Adaptive index projection
+# Adaptive index projection
 Adaptive indeix function Capblach.
 Using the raster environmental data the function allows to predict the adaptie value of each pixel
 
