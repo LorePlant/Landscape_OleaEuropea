@@ -26,7 +26,7 @@ for (i in 1:ncol(genotype))
 write.table(genotype, "geno_359_west_olive_MAF005__imputated.txt")
 
 #once the dataset was created I can enter the data table with read.table
-genotype<- read.table("geno_359_west_olive_imputated.txt", header=TRUE)
+genotype<- read.table("geno_359_west_olive_MAF005__imputated.txt", header=TRUE)
 ```
 The following excel file data359 which includes uncorrelated (r<0.7) bioclimatic variables as well as latitude and longitude was uploaded
 
