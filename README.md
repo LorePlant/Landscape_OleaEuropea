@@ -2,7 +2,7 @@
 
 This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
-# data input
+## data input
 I started by entering the vcf into R using the vcfR package as follow
 ```
 library(vcfR)
@@ -288,7 +288,7 @@ RDA for GEA discovery
 Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1) and Isolation by distanc (lqtitude and longitude) using them as covariates in the RDA model
 As first attempt I decided to run the anlysis seperate for temperature and precipitation variables.
 
->Temperature
+> #Temperature
 
 ```
 RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + lat + long), Variables)
@@ -356,7 +356,7 @@ dev.off()
 ![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/1c07b997-b249-4e1a-b43b-f0881ce38239)
 
 
->Precipitation
+> #Precipitation
 ```
 RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
@@ -476,6 +476,10 @@ jpeg(file = "/lustre/rocchettil/RDA_all_biplot.jpeg")
 plot(loading_all)
 dev.off()
 ```
+![RDA_all_biplot](https://github.com/user-attachments/assets/8f76c89e-6453-477a-9273-b3ca15eaf00e)
+
+
+
 To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the previously identified GEA SNPs. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
 ```
