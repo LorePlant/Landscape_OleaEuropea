@@ -173,7 +173,7 @@ sqrt(vif.cca(RDAgeo_env))
 
 I attempted to select significant ecological variables with a Variance Inflation Factor (VIF) lower than 10. Considering the termopluviometric graph for the study area, which includes France, Spain, and Morocco, we observe a common bell-shaped temperature distribution. Temperatures are higher in the spring and summer, while lower during the autumn and winter. However, precipitation patterns differ across regions. For example, the internal regions of France experience a more uniform distribution of precipitation throughout the year.
 
-To address specific temperature and precipitation adaptations, I carefully selected bioclimatic variables exluding those reffering temperature and precipitation to the wettest or driest quarters, focusing instead on variables that reflect temperature and precipitation variations during the warmest and coldest quarters. Following this selection, I checked the Variance Inflation Factor (VIF) for the chosen variables to ensure they were appropriate.
+To address specific temperature and precipitation adaptations, I carefully selected bioclimatic variables exluding those reffering temperature and precipitation to the wettest or driest quarters. I focused instead on variables that reflect temperature and precipitation variations during the warmest and coldest quarters, allowing to precisly asses temperature and precipitation during winter and summer quarters. Following this selection, I checked the Variance Inflation Factor (VIF) for the chosen variables to ensure they were appropriate.
 
 
 I selected bio2, bio6, bio8, bio12, bio14, bio15 and bio 19 and run again the VIF analysis
@@ -291,7 +291,7 @@ As first attempt I decided to run the anlysis seperate for temperature and preci
 >Temperature
 
 ```
-RDA_temp <- rda(genotype ~ bio2+bio6+bio8 +  Condition(PC1 + lat + long), Variables)
+RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_temp, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
@@ -313,7 +313,7 @@ rdadapt_env<- rdadapt(RDA_temp, 2)
 thres_env <- 0.05/length(rdadapt_env$p.values)
 ## Identifying the loci that are below the p-value threshold
 top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
-write.table(outliers, "Bonferroni_temp")
+write.table(top_outliers, "Bonferroni_temp")
 qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
 outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
 
@@ -331,7 +331,7 @@ loading_temp<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 38.4%") + ylab("RDA 2: 33.5%") +
+  xlab("RDA 1: 46%") + ylab("RDA 2: 29%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
