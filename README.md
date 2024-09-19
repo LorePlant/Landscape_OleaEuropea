@@ -358,7 +358,7 @@ dev.off()
 
 >Precipitation
 ```
-RDA_prec <- rda(genotype ~ bio12 + bio14+	bio15	+ bio19 +  Condition(PC1 + lat + long), Variables)
+RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
@@ -398,7 +398,7 @@ loading_prec<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 40.2%") + ylab("RDA 2: 23.8%") +
+  xlab("RDA 1: 44%") + ylab("RDA 2: 32%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -418,11 +418,10 @@ jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
 manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000100972), genomewideline = -log10(3.797084e-07))
 dev.off()
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/ba7f569c-8571-4183-bf4d-1058189d68be)
+![RDA_prec_biplot](https://github.com/user-attachments/assets/2f6a3ecc-9928-4c98-95f7-7781aea76802)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/8c493917-6826-4495-8ece-25f1076237f0)
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/2c73984d-4a99-4dc4-8450-463bf0a8a504)
 
-![Manh_RDA_prec](https://github.com/user-attachments/assets/f8932f0b-b3dd-48a4-b6b1-287850993980)
-
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/f95965ff-5193-4bb5-8c6e-1c9e3179b80e)
 
 > Adaptive index projection
 Adaptive indeix function Capblach.
