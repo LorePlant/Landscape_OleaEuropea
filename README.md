@@ -480,7 +480,7 @@ dev.off()
 
 
 
-To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the previously identified GEA SNPs. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
+To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the previously identified GEA SNPs for the two seperate analysis for temperature and precipitation. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
@@ -514,6 +514,46 @@ write.table(TAB_gen, "geno_all_adaptive_values.txt")
 ```
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
+
+What happen if again i correct for population structure and geography using them as covariates??
+
+```
+#partial redundancy analysis (RDA only with GEA QTL)
+geno_all_enrich_corrected<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
+RDA_all_enriched_corrected<-rda(geno_all_enrich_corrected ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19 + Condition(PC1, lat, long), Variables)
+summary(eigenvals(RDA_all_enriched_corrected, model = "constrained"))
+
+
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched_corrected , display = "sites")), scores(RDA_all_enriched_corrected, display = "sites"))
+
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched_corrected, choices=c(1,2), display="bp"))
+loading_geno_all_enriched_corrected<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("blue", "darkorange")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 36%") + ylab("RDA 2: 24%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched_corrected
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_corrected.jpeg")
+plot(loading_geno_all_enriched_corrected)
+dev.off()
+write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
+```
+
+![RDA_all_geno_biplot_corrected](https://github.com/user-attachments/assets/8a92b3a6-6678-4778-8d2a-e282e70923cb)
+![projected_adaptation_RDA1](https://github.com/user-attachments/assets/aa8e9c53-a1a3-4471-b86a-12eea549f79c)
+![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
+
+
+
 
 
 
