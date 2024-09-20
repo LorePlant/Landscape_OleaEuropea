@@ -549,10 +549,10 @@ write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
 ```
 
 ![RDA_all_geno_biplot_corrected](https://github.com/user-attachments/assets/8a92b3a6-6678-4778-8d2a-e282e70923cb)
-![projected_adaptation_RDA1](https://github.com/user-attachments/assets/aa8e9c53-a1a3-4471-b86a-12eea549f79c)
+![projected_adaptation_RDA1](https://github.com/user-attachments/assets/5fa142de-8bdb-4c92-ba1a-46aab7b0dcbf)
 ![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
 
-
+By using further using population strcuture and geography as covariates in the enriched RDA we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
 
 
 
