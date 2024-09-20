@@ -484,14 +484,15 @@ To visualize the adaptive differentiation among genotypes, I conducted an additi
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
-geno_all_enrich<-genotype[which(rdadapt_temp$q.values<0.05)]
+geno_all_enrich<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 
 
 #plot genotypes
 
-TAB_gen <- data.frame(geno = row.names(score), scores(RDA_all_enriched , display = "sites"))
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
+
 Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
 TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
 loading_geno_all_enriched<-ggplot() +
@@ -499,9 +500,9 @@ loading_geno_all_enriched<-ggplot() +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
   scale_color_manual(values = c("blue", "darkorange")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=10*RDA1, y=10*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 46%") + ylab("RDA 2: 26%") +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 48%") + ylab("RDA 2: 18%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -509,8 +510,10 @@ loading_geno_all_enriched
 jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot.jpeg")
 plot(loading_geno_all_enriched)
 dev.off()
+write.table(TAB_gen, "geno_all_adaptive_values.txt")
 ```
-![RDA_all_geno_biplot](https://github.com/user-attachments/assets/5c7bdf6e-a3fc-4900-acf9-69ecfd965ac2)
+
+![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
 
 
 
@@ -570,11 +573,11 @@ Create a table of scaled temperature variable
 ```
 
 library('dplyr')
-PCbio = data359[ ,16:25]
-tempvar = PCbio %>% select('bio2','bio6', 'bio8')
-Temp <- scale(tempvar, center=TRUE, scale=TRUE)
-scale_Temp <- attr(Temp, 'scaled:scale')
-center_Temp <- attr(Temp, 'scaled:center')
+PCbio = data359[ ,16:29]
+vars = PCbio %>% select('bio2','bio10', 'bio11', 'bio15', 'bio18', 'bio19')
+Var_scale <- scale(vars, center=TRUE, scale=TRUE)
+scale_var <- attr(Var_scale, 'scaled:scale')
+center_var <- attr(Var_scale, 'scaled:center')
 
 
 Env <- scale(PCbio, center=TRUE, scale=TRUE)
@@ -590,13 +593,19 @@ library("readxl")
 
 
 bio2<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio2_studyarea_ext.tif"))
-bio6<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio6_studyarea_ext.tif"))
-bio8<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio8_studyarea_ext.tif"))
+bio10<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio10_studyarea_ext.tif"))
+bio11<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio11_studyarea_ext.tif"))
+bio15<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio15_studyarea_ext.tif"))
+bio18<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio18_studyarea_ext.tif"))
+bio19<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio19_studyarea_ext.tif"))
 names(bio2) = 'bio2'
-names(bio6) = 'bio6'
-names(bio8) = 'bio8'
+names(bio10) = 'bio10'
+names(bio11) = 'bio11'
+names(bio15) = 'bio15'
+names(bio18) = 'bio18'
+names(bio19) = 'bio19'
 #stack the different raster file
-ras_current_temp<-stack(c(bio2,bio6, bio8))
+ras_current_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
 ```
 Predict tha adaptive index for each pixel grid
 
@@ -604,12 +613,12 @@ Predict tha adaptive index for each pixel grid
 ## Function to predict the adaptive index across the landscape
 source("./src/adaptive_index.R")
 
-res_RDA_temp_proj_current <- adaptive_index(RDA = RDA_temp_enriched, K = 2, env_pres = ras_current_temp, range = range, method = "loadings", scale_env = scale_Temp, center_env = center_Temp)
-projection<- stack(c(res_RDA_temp_proj_current$RDA1, res_RDA_temp_proj_current$RDA2))
+res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
 plot(projection)
 
 ## Vectorization of the climatic rasters for ggplot
-RDA_proj <- list(res_RDA_temp_proj_current$RDA1, res_RDA_temp_proj_current$RDA2)
+RDA_proj <- list(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2)
 RDA_proj <- lapply(RDA_proj, function(x) rasterToPoints(x))
 for(i in 1:length(RDA_proj)){
   RDA_proj[[i]][,3] <- (RDA_proj[[i]][,3]-min(RDA_proj[[i]][,3]))/(max(RDA_proj[[i]][,3])-min(RDA_proj[[i]][,3]))
@@ -619,7 +628,7 @@ for(i in 1:length(RDA_proj)){
 TAB_RDA <- as.data.frame(do.call(rbind, RDA_proj[1:2]))
 colnames(TAB_RDA)[3] <- "value"
 TAB_RDA$variable <- factor(c(rep("RDA1", nrow(RDA_proj[[1]])), rep("RDA2", nrow(RDA_proj[[2]]))), levels = c("RDA1","RDA2"))
-distrib_temp<- ggplot(data = TAB_RDA) + 
+distrib_all<- ggplot(data = TAB_RDA) + 
   geom_tile(aes(x = x, y = y, fill = cut(value, breaks=seq(0, 1, length.out=10), include.lowest = T))) + 
   scale_fill_viridis_d(alpha = 0.8, direction = -1, option = "A", labels = c("Negative scores","","","","Intermediate scores","","","","Positive scores")) +
   #coord_sf(xlim = c(-148, -98), ylim = c(35, 64), expand = FALSE) +
