@@ -515,7 +515,9 @@ write.table(TAB_gen, "geno_all_adaptive_values.txt")
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
 
-What happen if again i correct for population structure and geography using them as covariates??
+The results show a differentiation of WLD and ADM even by considering just GEA SNPS previously identified by correcting for population structure. I belive this suggest a significant differentiation of the two groups, occuping different niche.
+
+What happen if again I correct for population structure and geography using them as covariates?? I would expect a further differentiation within groups related to specific local environment.
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
@@ -552,7 +554,7 @@ write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
 ![projected_adaptation_RDA1](https://github.com/user-attachments/assets/5fa142de-8bdb-4c92-ba1a-46aab7b0dcbf)
 ![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
 
-By using further using population strcuture and geography as covariates in the enriched RDA we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
+By further using population structure and geography as covariates in the enriched RDA, we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
 
 
 
