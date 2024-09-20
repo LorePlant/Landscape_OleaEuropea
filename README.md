@@ -308,14 +308,14 @@ rdadapt<-function(rda,K)
   return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
 }
 
-rdadapt_env<- rdadapt(RDA_temp, 2)
+rdadapt_temp<- rdadapt(RDA_temp, 2)
 ## P-values threshold after Bonferroni correction
-thres_env <- 0.05/length(rdadapt_env$p.values)
+thres_env <- 0.05/length(rdadapt_temp$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
 write.table(top_outliers, "Bonferroni_temp")
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
+qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
+outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_env$q.values<0.05)])
 
 locus_scores <- scores(RDA_temp, choices=c(1:2), display="species", scaling="none")
 TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
@@ -375,14 +375,14 @@ rdadapt<-function(rda,K)
   return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
 }
 
-rdadapt_env<- rdadapt(RDA_prec, 2)
+rdadapt_prec<- rdadapt(RDA_prec, 2)
 ## P-values threshold after Bonferroni correction
-thres_env <- 0.05/length(rdadapt_env$p.values)
+thres_env <- 0.05/length(rdadapt_prec$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_prec$p.values<thres_env)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_prec$p.values<thres_env)], split = "_"), function(x) x[1])))
 write.table(top_outliers, "Bonferroni_prec")
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
+qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_prec$p.values, q.value = rdadapt_prec$q.value)
+outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_prec$q.values<0.05)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$q.values<0.05)])
 
 locus_scores <- scores(RDA_prec, choices=c(1:2), display="species", scaling="none")
 TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
@@ -484,7 +484,7 @@ To visualize the adaptive differentiation among genotypes, I conducted an additi
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
-geno_all_enrich<-genotype[which(rdadapt_env$q.values<0.05)]
+geno_all_enrich<-genotype[which(rdadapt_temp$q.values<0.05)]
 RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 
