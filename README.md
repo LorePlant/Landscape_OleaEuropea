@@ -657,12 +657,12 @@ distrib_all<- ggplot(data = TAB_RDA) +
   facet_grid(~ variable) +
   theme_bw(base_size = 7, base_family = "Times") +
   theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=7))
-jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg", height=1500, width=3000, res=600)
+jpeg(file = "/lustre/rocchettil/adaptive_current.jpeg", height=1500, width=3000, res=600)
 plot(distrib_all)
 dev.off()
 ```
 
-![Adaptive_temp_proj](https://github.com/user-attachments/assets/97f90439-c8c8-419e-b158-620d281a63a1)
+![adaptive_current](https://github.com/user-attachments/assets/f7d8e786-f2ad-4ce9-bd5a-202ae0a4f9b2)
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
 
