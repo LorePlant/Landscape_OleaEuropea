@@ -535,8 +535,8 @@ TAB_var <- as.data.frame(scores(RDA_all_enriched_corrected, choices=c(1,2), disp
 loading_geno_all_enriched_corrected<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
-  scale_color_manual(values = c("blue", "darkorange")) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = region), size = 2.5) +
+  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue" )) +
   geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
   xlab("RDA 1: 36%") + ylab("RDA 2: 24%") +
