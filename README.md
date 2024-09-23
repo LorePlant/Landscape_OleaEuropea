@@ -664,7 +664,7 @@ dev.off()
 
 ![Adaptive_temp_proj](https://github.com/user-attachments/assets/97f90439-c8c8-419e-b158-620d281a63a1)
 
-![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
+![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
 
 
 
