@@ -42,42 +42,43 @@ library("hierfstat")
 pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for each individual
 #convert genInd and pop in hierfstat
 hierfstat<-genind2hierfstat(gl.genoLAND ,pop=pops)
-genet.dist(hierfstat,diploid=TRUE,method="WC84")
+m<-genet.dist(hierfstat,diploid=TRUE,method="WC84")
 ```
 
 
 In the next chuck of codes we are going to define the Euclidean distqnce for geogrqphy, enviroment and genetic with the final aim to conduct a Mantel test
 ```
+#population environmental and geographic variables
+pop_env<- read.csv("pop_data.csv", header = TRUE)
+
 #bioclim PCdata frame
-PCbio = data359[,15:24]
-Env <- scale(PCbio, center=TRUE, scale=TRUE)
+Env <- scale(pop_env[,4:17], center=TRUE, scale=TRUE)
 dist.PCbio = dist(Env, method = "euclidean")
 
 #geographic data
-geo = data.frame(data359$long, data359$lat)
+geo = data.frame(pop_env$long, pop_env$lat)
 dist.geo = dist(geo, method = "euclidean")
 
-#genetic distance
-distgenEUCL <- dist(gl.genoLAND, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
+
 ```
 #Mantel test
 With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if there is a linear correlation between ecological distance and genetic distance matrices
 ```
 # mantel test Genetic distance-ecological distance
-geno_eco = mantel(distgenEUCL, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
+geno_eco = mantel(m, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
 geno_eco
-summary(lm(dist.PCbio~distgenEUCL))
-graph = mantel.correlog(distgenEUCL, dist.PCbio, XY=NULL, n.class=0, break.pts=NULL, 
+summary(lm(dist.PCbio~m))
+graph = mantel.correlog(m, dist.PCbio, XY=NULL, n.class=0, break.pts=NULL, 
                         cutoff=TRUE, r.type="pearson", nperm=999, mult="holm", progressive=TRUE)
 
 
-xx = as.vector(distgenEUCL) #convert distance matrix into a vector
+xx = as.vector(m) #convert distance matrix into a vector
 zz = as.vector(dist.PCbio)
 manatelmatrix = data.frame(zz,xx)
 mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
   geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21,fill = "grey") + 
   geom_smooth(method = "lm", colour = "red", alpha = 0.2)+
-  labs(y = "Euclidean genetic distance", x = "Euclidean ecological distance")+
+  labs(y = "FST genetic distance", x = "Euclidean ecological distance")+
   theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
          axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
          axis.title= element_text(face = "bold", size = 18, colour = "black"), 
@@ -87,24 +88,25 @@ mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
          legend.text = element_text(size = 10, face = "bold", colour = "black"), 
          legend.position = "top", strip.background = element_rect(fill = "grey90", colour = "black"),
          strip.text = element_text(size = 9, face = "bold"))
-jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height = "350")
+jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height = 350)
 plot(mm)
 dev.off()
 
 ```
+![mantel_olive_geno_eco](https://github.com/user-attachments/assets/c584aaa1-11bb-4b74-89f0-cdd2e2682de9)
 
-![mantel_olive_geno_eco](https://github.com/user-attachments/assets/9f58ecf7-48fb-4bfa-8181-8006f5a6b857)
 
-Results suggests a moderate (r: 0.21) though significant (P<0.01) correlation between genetic euclidean distance and ecological euclidean distances. 
+
+Results suggests a moderate (r: 0.32) though significant (P<0.01) correlation between genetic euclidean distance and ecological euclidean distances. 
 Considering the potential effect of geography in the ecological distance I used partial Mantel test which test for correlation between genetic distance and environmental distance considering geographic distance as covariate
 
 
 ```
 #partial Mantel test 
-partial_mantel = mantel.partial(distgenEUCL, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
+partial_mantel = mantel.partial(m, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
                                 na.rm = TRUE)
 partial_mantel
-summary(lm(distgenEUCL~dist.PCbio|dist.geo))
+summary(lm(m~dist.PCbio|dist.geo))
 #plotting partial Mantel test
 xx = as.vector(distgenEUCL) #convert distance matrix into a vector
 yy= as.vector(dist.geo)
@@ -115,7 +117,7 @@ mp = ggplot(partial_mantel_matrix, aes(y = xx, x = zz)) +
   geom_point(size = 2.5, alpha = 0.75, colour = "black",shape = 21, aes(fill = yy)) + 
   geom_smooth(method = "lm", colour = "red", alpha = 0.2) + 
   scale_fill_continuous(high = "navy", low = "lightblue")+
-  labs(y = "Eucledian genetic distance", x = "Eucledian ecological distance", fill= "geographic distance")+
+  labs(y = "FST genetic distance", x = "Eucledian ecological distance", fill= "geographic distance")+
   theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
          axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
          axis.title= element_text(face = "bold", size = 18, colour = "black"), 
@@ -131,9 +133,10 @@ jpeg(file = "/lustre/rocchettil/partial_mantel_olive.jpeg")
 plot(mp)
 dev.off()
 ```
-The result confirmes the significant (P<0.01) and moderate correlation (r:0.16) between environmental distance and genetic distance. Overall this result suggest a potential Isolation-by-envirnoment effect IBE on the sampled population.
+The result confirmes the significant (P<0.01) and moderate correlation (r:0.24) between environmental distance and genetic distance. Overall this result suggest a potential Isolation-by-envirnoment effect IBE on the sampled population.
 
-![partial_mantel_olive](https://github.com/user-attachments/assets/dd34f232-d6d1-4e13-81d4-a06992c4e8f9)
+![partial_mantel_olive](https://github.com/user-attachments/assets/4a7acb1a-413c-4982-bd30-e9795f03e3ce)
+
 
 
 # Redundancy analysis
@@ -599,17 +602,6 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
   return(Proj_pres = Proj_pres)
 }
 ```
-Run a RDA analysis using only the GEA marker previously identify using a FDR (q<0.05) threshold
-
-```
-geno_enrich<-genotype[which(rdadapt_env$q.values<0.05)]
-RDA_temp_enriched<-rda(geno_enrich ~ bio2+bio6+bio8 +  Condition(PC1 + lat + long), Variables)
-summary(eigenvals(RDA_temp_enriched, model = "constrained"))
-jpeg(file = "/lustre/rocchettil/RDA_tempenriched_biplot.jpeg")
-plot(RDA_temp_enriched)
-dev.off()
-```
-![RDA_tempenriched_biplot](https://github.com/user-attachments/assets/c595862b-8329-43bc-b30c-0db4915bc0ca)
 
 > Recovering scaling coefficients
 Create a table of scaled temperature variable
@@ -651,7 +643,7 @@ Predict tha adaptive index for each pixel grid
 ## Function to predict the adaptive index across the landscape
 source("./src/adaptive_index.R")
 
-res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched_corrected, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
 projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
 plot(projection)
 
