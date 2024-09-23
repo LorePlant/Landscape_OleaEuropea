@@ -548,53 +548,8 @@ plot(cor(Geno$RDA1, Geno$PC1))
 ```
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
-![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
-
 
 The results show a differentiation of WLD and ADM even by considering just GEA SNPS previously identified by correcting for population structure. I belive this suggest a significant differentiation of the two groups, occuping different niche.
-
-What happen if again I correct for population structure and geography using them as covariates?? I would expect a further differentiation within groups related to specific local environment.
-
-```
-#partial redundancy analysis (RDA only with GEA QTL)
-geno_all_enrich_corrected<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
-RDA_all_enriched_corrected<-rda(geno_all_enrich_corrected ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19 + Condition(PC1, lat, long), Variables)
-summary(eigenvals(RDA_all_enriched_corrected, model = "constrained"))
-
-
-#plot genotypes
-
-TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched_corrected , display = "sites")), scores(RDA_all_enriched_corrected, display = "sites"))
-
-Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
-TAB_var <- as.data.frame(scores(RDA_all_enriched_corrected, choices=c(1,2), display="bp"))
-loading_geno_all_enriched_corrected<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = region), size = 2.5) +
-  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue" )) +
-  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 36%") + ylab("RDA 2: 24%") +
-  guides(color=guide_legend(title="Locus type")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-loading_geno_all_enriched_corrected
-jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_corrected.jpeg")
-plot(loading_geno_all_enriched_corrected)
-dev.off()
-write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
-```
-
-![RDA_all_geno_biplot_corrected](https://github.com/user-attachments/assets/8a92b3a6-6678-4778-8d2a-e282e70923cb)
-![projected_adaptation_RDA1](https://github.com/user-attachments/assets/5fa142de-8bdb-4c92-ba1a-46aab7b0dcbf)
-![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
-
-The results show the biplot with the genotype adaptive value and their spatial interpolation (IDW) made with QGIS.
-By further using population structure and geography as covariates in the enriched RDA, we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
-
-
-
 
 # Adaptive index projection
 Adaptive indeix function Capblach.
@@ -708,6 +663,57 @@ dev.off()
 ```
 
 ![Adaptive_temp_proj](https://github.com/user-attachments/assets/97f90439-c8c8-419e-b158-620d281a63a1)
+
+![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
+
+
+
+
+
+What happen if again I correct for population structure and geography using them as covariates?? I would expect a further differentiation within groups related to specific local environment.
+
+```
+#partial redundancy analysis (RDA only with GEA QTL)
+geno_all_enrich_corrected<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
+RDA_all_enriched_corrected<-rda(geno_all_enrich_corrected ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19 + Condition(PC1, lat, long), Variables)
+summary(eigenvals(RDA_all_enriched_corrected, model = "constrained"))
+
+
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched_corrected , display = "sites")), scores(RDA_all_enriched_corrected, display = "sites"))
+
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched_corrected, choices=c(1,2), display="bp"))
+loading_geno_all_enriched_corrected<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = region), size = 2.5) +
+  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue" )) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 36%") + ylab("RDA 2: 24%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched_corrected
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_corrected.jpeg")
+plot(loading_geno_all_enriched_corrected)
+dev.off()
+write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
+```
+
+![RDA_all_geno_biplot_corrected](https://github.com/user-attachments/assets/8a92b3a6-6678-4778-8d2a-e282e70923cb)
+![projected_adaptation_RDA1](https://github.com/user-attachments/assets/5fa142de-8bdb-4c92-ba1a-46aab7b0dcbf)
+![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
+
+The results show the biplot with the genotype adaptive value and their spatial interpolation (IDW) made with QGIS.
+By further using population structure and geography as covariates in the enriched RDA, we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
+
+
+
+
+
 
 
 >Genomic offset RDA based
