@@ -490,8 +490,10 @@ To visualize the adaptive differentiation among genotypes, I conducted an additi
 geno_all_enrich<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
+```
+>ADM vs WLD
 
-
+```
 #plot genotypes
 
 TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
@@ -515,8 +517,39 @@ plot(loading_geno_all_enriched)
 dev.off()
 write.table(TAB_gen, "geno_all_adaptive_values.txt")
 ```
+> Geographic regions
+
+```
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
+
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
+loading_geno_all_enriched_region<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = PC1), size = 2.5) +
+  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 48%") + ylab("RDA 2: 18%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched_region
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot.jpeg")
+plot(loading_geno_all_enriched)
+dev.off()
+```
+Correlation PC1 (wild vs adm) and RDA1
+```
+plot(cor(Geno$RDA1, Geno$PC1))
+```
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
+![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
+
 
 The results show a differentiation of WLD and ADM even by considering just GEA SNPS previously identified by correcting for population structure. I belive this suggest a significant differentiation of the two groups, occuping different niche.
 
