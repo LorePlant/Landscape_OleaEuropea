@@ -666,7 +666,7 @@ dev.off()
 
 ![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)![WLDvsADM adaptive distrib](https://github.com/user-attachments/assets/638a105d-9fc9-4ad4-9a07-46b5bcdad674)
 
-Considering that RDA1 is the adaptive component that correlates with ADM and WLD adaptive differentiation I've decided to plo
+Considering that RDA1 is the adaptive component that correlates with ADM and WLD adaptive differentiation I've decided to plot pixels with positive RDA1 (orange) and negative RDA1(blue). This differentiation should highlight the respective adaptive space occupied by the WLD and the ADM.
 
 
 
