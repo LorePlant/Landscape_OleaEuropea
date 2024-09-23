@@ -483,7 +483,7 @@ dev.off()
 
 
 
-To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the previously identified GEA SNPs for the two seperate analysis for temperature and precipitation. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
+To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 227 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
@@ -646,6 +646,8 @@ source("./src/adaptive_index.R")
 res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
 projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
 plot(projection)
+writeRaster(projection,'projection_RDA_current.tif',options=c('TFW=YES'))#save raster for QGIS
+
 
 ## Vectorization of the climatic rasters for ggplot
 RDA_proj <- list(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2)
