@@ -45,8 +45,8 @@ hierfstat<-genind2hierfstat(gl.genoLAND ,pop=pops)
 m<-genet.dist(hierfstat,diploid=TRUE,method="WC84")
 ```
 
-
-In the next chuck of codes we are going to define the Euclidean distqnce for geogrqphy, enviroment and genetic with the final aim to conduct a Mantel test
+We obtained a pairwide distance ,atrix of 325 pairwise comparisons.
+In the next chuck of codes we are going to define the Euclidean distance for geography and enviromental variables
 ```
 #population environmental and geographic variables
 pop_env<- read.csv("pop_data.csv", header = TRUE)
