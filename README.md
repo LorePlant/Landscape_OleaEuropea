@@ -554,6 +554,7 @@ write.table(TAB_gen, "geno_all_adaptive_values_corrected.txt")
 ![projected_adaptation_RDA1](https://github.com/user-attachments/assets/5fa142de-8bdb-4c92-ba1a-46aab7b0dcbf)
 ![projected_adaptation_RDA2](https://github.com/user-attachments/assets/f8364b17-51c7-459f-b68f-168118ed9696)
 
+The results show the biplot with the genotype adaptive value and their spatial interpolation (IDW) made with QGIS.
 By further using population structure and geography as covariates in the enriched RDA, we can highlight indipendent adaptation within the wild and the admixed group. For instance we can higlight differences in environmental adaptation within the WLD group present in Morocco and south Spain. In this case the WLD in South Atlantic Morocco and in the Atlante mountains shows a distinct adaptation for higher precipitation during the summer quarter (bio18) compared with WLD present in the north Morocco and south Spain, where higher winter temperature and lower summer precipitations are present.
 
 
@@ -621,11 +622,6 @@ Var_scale <- scale(vars, center=TRUE, scale=TRUE)
 scale_var <- attr(Var_scale, 'scaled:scale')
 center_var <- attr(Var_scale, 'scaled:center')
 
-
-Env <- scale(PCbio, center=TRUE, scale=TRUE)
-
-scale_env <- attr(Env, 'scaled:scale')
-center_env <- attr(Env, 'scaled:center')
 ```
 Enter the raster file for the specific bioclimatic variable for current climatic situation
 ```
@@ -655,7 +651,7 @@ Predict tha adaptive index for each pixel grid
 ## Function to predict the adaptive index across the landscape
 source("./src/adaptive_index.R")
 
-res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched_corrected, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
 projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
 plot(projection)
 
@@ -680,7 +676,7 @@ distrib_all<- ggplot(data = TAB_RDA) +
   theme_bw(base_size = 7, base_family = "Times") +
   theme(panel.grid = element_blank(), plot.background = element_blank(), panel.background = element_blank(), strip.text = element_text(size=7))
 jpeg(file = "/lustre/rocchettil/Adaptive_temp_proj.jpeg", height=1500, width=3000, res=600)
-plot(distrib_temp)
+plot(distrib_all)
 dev.off()
 ```
 
