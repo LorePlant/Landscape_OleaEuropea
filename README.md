@@ -716,23 +716,30 @@ By further using population structure and geography as covariates in the enriche
 
 
 
->Genomic offset RDA based
+# Genomic offset RDA based
 
 ```
 #future temp scenario
-# ras temperature
+
 library(raster)
 library("readxl")
 
 
-bio2<- raster(paste("/lustre/rocchettil/bio2_ext_studyarea.tif"))
-bio6<- raster(paste("/lustre/rocchettil/bio6_ext_studyarea.tif"))
-bio8<- raster(paste("/lustre/rocchettil/bio8_ext_studyarea.tif"))
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio2_ext_studyarea.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio10_ext_studyarea.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio11_ext_studyarea.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio15_ext_studyarea.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio18_ext_studyarea.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2041_2070/IPSL(france)/IPSLssp585/bio19_ext_studyarea.tif"))
 names(bio2) = 'bio2'
-names(bio6) = 'bio6'
-names(bio8) = 'bio8'
+names(bio10) = 'bio10'
+names(bio11) = 'bio11'
+names(bio15) = 'bio15'
+names(bio18) = 'bio18'
+names(bio19) = 'bio19'
 #stack the different raster file
-ras_2050_temp<-stack(c(bio2,bio6, bio8))
+ras_2040_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
+
 ```
 function genomic offset
 ```
@@ -817,9 +824,49 @@ genomic_offset <- function(RDA, K, env_pres, env_fut, range = NULL, method = "lo
 
 Genomic offset projection
 ```
-res_RDA_temp_proj_2050 <- genomic_offset(RDA = RDA_temp_enriched, K = 2, env_pres = ras_current_temp, env_fut = ras_2050_temp, range = range, method = "loadings", scale_env = scale_Temp, center_env = center_Temp)
+res_RDA_all_proj_2040_ssp585 <- genomic_offset(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, env_fut = ras_2040_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+
+#res_RDA_all_proj_2040_ssp585$Proj_offset_global is the raster file for overall GO
+
+plot(res_RDA_all_proj_2040_ssp585$Proj_offset_global)
+
+writeRaster(res_RDA_all_proj_2040_ssp585$Proj_offset_global,'GO_2040_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
+```
+I prefere to plot the raster using QGIS.
+
+
+
+
+
+The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA mong the WLD and ADM group.
 
 ```
+## Extracting environmental values for each source population
+GO_2040_ssp585_genotypes<- data.frame(data359$IDSample, data359$group, extract(res_RDA_all_proj_2040_ssp585$Proj_offset_global, data359[,9:10]))
+write.table(GO_2040_ssp585_genotypes, "GO_2040_ssp585_genotypes;txt")
+write.csv(GO_2040_ssp585_genotypes, "GO_2040_ssp585_genotypes.csv")
+
+#One-way anova with boxplots. Mainly used to plot the environmental effect for a specific trait
+
+GO_2040_ssp585_geno<- read.csv("GO_2040_ssp585_genotypes.csv", header = TRUE)
+names(GO_2040_ssp585_geno)[2]<- paste("geno")
+names(GO_2040_ssp585_geno)[3]<- paste("group")
+names(GO_2040_ssp585_geno)[4]<- paste("GO_2040_ssp585")
+
+D<- ggplot(GO_2040_ssp585_geno, aes(x=group, y=GO_2040_ssp585, fill=group)) + 
+  geom_boxplot()+
+  theme_bw(base_size = 14)+
+  theme(axis.text.x = element_text(hjust=1,face="bold", size=14, angle=45))+ stat_compare_means(method = "anova")+
+scale_fill_manual(values=c( "blue", "darkorange"))+
+  labs(y = "GO_2040_ssp585_geno")
+jpeg(file = "/lustre/rocchettil/GO_2040_ssp585_WLD_ADM.jpeg")
+plot(D)
+dev.off()
+```
+![GO_2040_ssp585_WLD_ADM](https://github.com/user-attachments/assets/3baf6541-9c18-4d50-868d-c7e53a9554ef)
+
+
+
 
 
 
