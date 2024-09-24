@@ -718,6 +718,7 @@ By further using population structure and geography as covariates in the enriche
 
 # Genomic offset RDA based
 
+Extract future bioclimatic raster file from CHELSA database. In this fisrt step we used predictions 
 ```
 #future temp scenario
 
