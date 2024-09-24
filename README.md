@@ -835,8 +835,9 @@ writeRaster(res_RDA_all_proj_2100_ssp585$Proj_offset_global,'GO_2100_ssp585.tif'
 ```
 I prefere to plot the raster using QGIS.
 
+![GO_projection_2100_IPSL_ssp585](https://github.com/user-attachments/assets/37217ba7-7317-4ad6-90c3-f8b70b118bdf)
 
-
+The result show a lower GO at low latitude compared to higher latitude level, suggesting a higher adaptation of WLD compared to the ADM group.
 
 
 The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
