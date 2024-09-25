@@ -898,9 +898,9 @@ lm(formula = GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno), where
 cv is the value calcolated for each genotype that averages all the coefficients of variation calcolated  for the same clim variable between future and current clim scenario
 
 
- |            | Estimate Std. |  Error | t value | Pr(>|t|)| 
- ------------------------------------------------------------------
- | (Intercept) |  2.28728   |  0.15488 |  14.768 |  < 2e-16 ***| 
+ |            | Estimate Std |  Error | t value | P| 
+ |-------------|--------------|--------|---------|---|
+ | Intercept |  2.28728   |  0.15488 |  14.768 |  < 2e-16 ***| 
  | groupWild   | -0.38014  |   0.04019  | -9.459 |  < 2e-16 ***| 
  | cov         | -7.42711  |   1.43705 |  -5.168 | 3.95e-07 ***| 
  
@@ -908,9 +908,15 @@ cv is the value calcolated for each genotype that averages all the coefficients 
 
 
  | group |  lsmean  |   SE | df |lower.CL| upper.CL|
- -------------------------------------------------------
+ |--------|---------|-------|---|---------|----------|
  |  Admixed |  1.51 |0.0245| 356 |    1.46 |    1.55|
  |  Wild    |  1.13 |0.0317 |356  |   1.06 |    1.19|
+
+
+|  bio2    |   bio10   |   bio11  |  bio15  |   bio18  |   bio19  | 
+|---------|----------|---------|----------|-----------|----------|
+1.655992| 1.287833 |2.315390 |2.776476 |1.942473| 1.371975|
+
 
 
 # Gradient Forest
