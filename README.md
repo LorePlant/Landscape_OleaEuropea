@@ -36,7 +36,7 @@ data359<- read.csv("dataset_359_olive.csv", header = TRUE)
 # Mantel test
 The Mantel test allows to conduct a linear regression analysis between the genetic distance and environmental distance. The significance of this regression suggests a Isolation by Environment IBE effect, where individual in ecologically similar locations they are more genetically similar compare to individuals in ecologically diverse locations.
 
-As first step I'm going to estimate the genetic distance as pairwise FST among the 27 populations using the R package Hierfstat.
+As first step I'm going to estimate the genetic distance as pairwise FST (WC 1984) among the 27 populations using the R package Hierfstat.
 ```
 library("hierfstat")
 pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for each individual
@@ -44,8 +44,20 @@ pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for eac
 hierfstat<-genind2hierfstat(gl.genoLAND ,pop=pops)
 m<-genet.dist(hierfstat,diploid=TRUE,method="WC84")
 ```
+We obtained a pairwide distance matrix of 325 pairwise comparisons.
+For each FST value we calcolated the transformed value as FST/(1-FST). To do so we converted the dist object in matrix, saved the text to ultimetly calcolate the FST/(1-FST) for each data point. Ther resulted matrix was then entered in R as matrix and trasnformed in dist object to run the subseauent mantel test.
+```
+p<-as.matrix(m)
+write.table(p, 'FSTpop27.txt')
+# calcolated FST/(1-FST) for each data point in excel
 
-We obtained a pairwide distance ,atrix of 325 pairwise comparisons.
+f<-read.table('FSTtransf.txt')
+FSTpp<- as.matrix(f)
+distFST<- as.dist(FSTpp)
+```
+
+
+
 In the next chuck of codes we are going to define the Euclidean distance for geography and enviromental variables
 ```
 #population environmental and geographic variables
@@ -65,20 +77,20 @@ dist.geo = dist(geo, method = "euclidean")
 With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if there is a linear correlation between ecological distance and genetic distance matrices
 ```
 # mantel test Genetic distance-ecological distance
-geno_eco = mantel(m, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
+geno_eco = mantel(distFST, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
 geno_eco
 summary(lm(dist.PCbio~m))
 graph = mantel.correlog(m, dist.PCbio, XY=NULL, n.class=0, break.pts=NULL, 
                         cutoff=TRUE, r.type="pearson", nperm=999, mult="holm", progressive=TRUE)
 
 
-xx = as.vector(m) #convert distance matrix into a vector
+xx = as.vector(distFST) #convert distance matrix into a vector
 zz = as.vector(dist.PCbio)
 manatelmatrix = data.frame(zz,xx)
 mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
   geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21,fill = "grey") + 
   geom_smooth(method = "lm", colour = "red", alpha = 0.2)+
-  labs(y = "FST genetic distance", x = "Euclidean ecological distance")+
+  labs(y = "FST/(1-FST)", x = "Euclidean ecological distance")+
   theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
          axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
          axis.title= element_text(face = "bold", size = 18, colour = "black"), 
@@ -93,7 +105,8 @@ plot(mm)
 dev.off()
 
 ```
-![mantel_olive_geno_eco](https://github.com/user-attachments/assets/c584aaa1-11bb-4b74-89f0-cdd2e2682de9)
+
+![mantel_olive_geno_eco](https://github.com/user-attachments/assets/90200675-9ae9-4ee3-be18-e21248c72ec7)
 
 
 
@@ -103,12 +116,12 @@ Considering the potential effect of geography in the ecological distance I used 
 
 ```
 #partial Mantel test 
-partial_mantel = mantel.partial(m, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
+partial_mantel = mantel.partial(distFST, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
                                 na.rm = TRUE)
 partial_mantel
 summary(lm(m~dist.PCbio|dist.geo))
 #plotting partial Mantel test
-xx = as.vector(distgenEUCL) #convert distance matrix into a vector
+xx = as.vector(distFST) #convert distance matrix into a vector
 yy= as.vector(dist.geo)
 zz = as.vector(dist.PCbio)
 partial_mantel_matrix = data.frame(xx,zz,yy)#new data frame with vectorize distance matrix
@@ -117,7 +130,7 @@ mp = ggplot(partial_mantel_matrix, aes(y = xx, x = zz)) +
   geom_point(size = 2.5, alpha = 0.75, colour = "black",shape = 21, aes(fill = yy)) + 
   geom_smooth(method = "lm", colour = "red", alpha = 0.2) + 
   scale_fill_continuous(high = "navy", low = "lightblue")+
-  labs(y = "FST genetic distance", x = "Eucledian ecological distance", fill= "geographic distance")+
+  labs(y = "FST/(1-FST)", x = "Eucledian ecological distance", fill= "geographic distance")+
   theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
          axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
          axis.title= element_text(face = "bold", size = 18, colour = "black"), 
@@ -135,7 +148,8 @@ dev.off()
 ```
 The result confirmes the significant (P<0.01) and moderate correlation (r:0.24) between environmental distance and genetic distance. Overall this result suggest a potential Isolation-by-envirnoment effect IBE on the sampled population.
 
-![partial_mantel_olive](https://github.com/user-attachments/assets/4a7acb1a-413c-4982-bd30-e9795f03e3ce)
+![partial_mantel_olive](https://github.com/user-attachments/assets/32430757-a42f-4b22-b496-ec5b2480ab37)
+
 
 
 
