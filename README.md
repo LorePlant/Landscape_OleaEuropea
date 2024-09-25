@@ -884,10 +884,33 @@ dev.off()
 ```
 ![GO_2100_ssp585_WLD_ADM](https://github.com/user-attachments/assets/98a8d41d-2763-42ef-8934-6266c5ee4910)
 
+tentative of correction for specific genotype climatic distance
+
+```
+GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
+model <- lm(GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno)
+summary(model)
+value<-lsmeans(model,~ group)
+```
+The script applied the follwing model 
+lm(formula = GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno), where
+
+cv is the value calcolated for each genotype that averages all the coefficients of variation calcolated  for the same clim variable between future and current clim scenario
+
+
+|             Estimate Std. |  Error | t value | Pr(>|t|)| 
+---------------------------------------------------------
+| (Intercept) |  2.28728   |  0.15488 |  14.768 |  < 2e-16 ***| 
+| groupWild   | -0.38014  |   0.04019  | -9.459 |  < 2e-16 ***| 
+| cov         | -7.42711  |   1.43705 |  -5.168 | 3.95e-07 ***| 
 
 
 
 
+| group |  lsmean  |   SE | df |lower.CL| upper.CL|
+------------------------------------------------- 
+|  Admixed |  1.51 |0.0245| 356 |    1.46 |    1.55|
+|  Wild    |  1.13 |0.0317 |356  |   1.06 |    1.19|
 
 
 # Gradient Forest
