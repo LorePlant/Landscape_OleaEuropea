@@ -913,11 +913,6 @@ cv is the value calcolated for each genotype that averages all the coefficients 
  |  Wild    |  1.13 |0.0317 |356  |   1.06 |    1.19|
 
 
-|  bio2    |   bio10   |   bio11  |  bio15  |   bio18  |   bio19  | 
-|---------|----------|---------|----------|-----------|----------|
-1.655992| 1.287833 |2.315390 |2.776476 |1.942473| 1.371975|
-
-
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
