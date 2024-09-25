@@ -742,7 +742,7 @@ library("readxl")
 
 bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio2_2100_IPSLssp585.tif"))
 bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio10_2100_IPSLssp585.tif"))
-bio11<- raster(paste(/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio11_2100_IPSLssp585.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio11_2100_IPSLssp585.tif"))
 bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio15_2100_IPSLssp585.tif"))
 bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio18_2100_IPSLssp585.tif"))
 bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio19_2100_IPSLssp585.tif"))
@@ -754,6 +754,9 @@ names(bio18) = 'bio18'
 names(bio19) = 'bio19'
 #stack the different raster file
 ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
+ras_2100_var_genotypes<- data.frame(data359$IDSample, data359$group, extract(ras_2100_var, data359[,9:10]))
+write.table(ras_2100_var_genotypes, ras_2100_var_genotypes.txt")
+write.csv(ras_2100_var_genotypes, "ras_2100_var_genotypes.csv")
 
 ```
 function genomic offset
