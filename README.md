@@ -915,7 +915,15 @@ _clim.dist_ is the value calcolated for each genotype that averages all the coef
  |  Admixed |  1.51 |0.0245| 356 |    1.46 |    1.55|
  |  Wild    |  1.13 |0.0317 |356  |   1.06 |    1.19|
 
+```
+df<- as.data.frame(value)
+p<- ggplot(df, aes(x=group, y=lsmean)) + 
+  geom_line() +
+  geom_point()+
+  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.2,
+                 position=position_dodge(0.05))
 
+```
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
