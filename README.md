@@ -890,7 +890,7 @@ tentative of correction for specific genotype climatic distance
 GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
 model <- lm(GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno)
 summary(model)
-value<-lsmeans(model,~ group)
+value<-lsmeans(model,~ group|cov)
 ```
 The script applied the follwing model 
 $Y = group + clim.dist + e$
@@ -917,13 +917,18 @@ _clim.dist_ is the value calcolated for each genotype that averages all the coef
 
 ```
 df<- as.data.frame(value)
-p<- ggplot(df, aes(x=group, y=lsmean)) + 
+p<- ggplot(df, aes(x=group, y=lsmean, color = group)) + 
   geom_line() +
   geom_point()+
+scale_color_manual(values=c( "blue", "darkorange"))+
   geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.2,
-                 position=position_dodge(0.05))
-
+                 position=position_dodge(0.05))+
+ theme_bw(base_size = 14)
+jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_adjusted_WLD_ADM.jpeg")
+plot(p)
+dev.off()
 ```
+![GO_2100_ssp585_adjusted_WLD_ADM](https://github.com/user-attachments/assets/9946f745-7f66-4966-99b7-f5e3164280be)
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
