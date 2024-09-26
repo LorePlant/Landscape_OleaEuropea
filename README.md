@@ -893,9 +893,12 @@ summary(model)
 value<-lsmeans(model,~ group)
 ```
 The script applied the follwing model 
-lm(formula = GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno), where
+$Y = group + clim.dist + e$
 
-cv is the value calcolated for each genotype that averages all the coefficients of variation calcolated  for the same clim variable between future and current clim scenario
+where _Y_ is the estimated genomic offsets, _group_ the ADM and WLD differentiation and _clim.dist_ the climatic distance between current and future scenario for each genotype.
+
+
+_clim.dist_ is the value calcolated for each genotype that averages all the coefficients of variation calcolated  for the same clim variable between future and current clim scenario
 
 
  |            | Estimate Std |  Error | t value | P| 
