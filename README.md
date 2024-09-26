@@ -930,6 +930,9 @@ dev.off()
 ```
 ![GO_2100_ssp585_adjusted_WLD_ADM](https://github.com/user-attachments/assets/9946f745-7f66-4966-99b7-f5e3164280be)
 
+Even applying a correction using genotype climatic distance as covariate we can still see a significant difference between Wild and Admixed.
+
+
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
 This code is still under construction. In this part I'm keeping track of the progresses achived.
