@@ -887,10 +887,17 @@ dev.off()
 tentative of correction for specific genotype climatic distance
 
 ```
+#wild vs ADM
 GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
 model <- lm(GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno)
 summary(model)
 value<-lsmeans(model,~ group|cov)
+
+#latitude range
+GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
+model <- lm(GO_2100_ssp585 ~ latitude_range + cov, data = GO_2100_ssp585_geno)
+summary(model)
+value<-lsmeans(model,~ latitude_range|cov)
 ```
 The script applied the follwing model 
 $Y = group + clim.dist + e$
@@ -927,8 +934,23 @@ scale_color_manual(values=c( "blue", "darkorange"))+
 jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_adjusted_WLD_ADM.jpeg")
 plot(p)
 dev.off()
+
+
+df<- as.data.frame(value)
+l<- ggplot(df, aes(x=latitude_range, y=lsmean, color = latitude_range)) + 
+  geom_line() +
+  geom_point()+
+scale_color_manual(values = c("darkgreen","red", "darkorange"))+
+  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.2,
+                 position=position_dodge(0.05))+
+ theme_bw(base_size = 14)
+jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_adjusted_Lat_range.jpeg")
+plot(l)
+dev.off()
+ 
 ```
 ![GO_2100_ssp585_adjusted_WLD_ADM](https://github.com/user-attachments/assets/9946f745-7f66-4966-99b7-f5e3164280be)
+![GO_2100_ssp585_adjusted_Lat_range](https://github.com/user-attachments/assets/899f67ec-be2c-4eef-b0f8-1d656a2b9287)
 
 Even applying a correction using genotype climatic distance as covariate we can still see a significant difference between Wild and Admixed.
 
