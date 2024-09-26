@@ -1,0 +1,5 @@
+#Spatio-temporal offsets describe the G - E disruption for a (donor) population being 
+# transferred from one grid cell under current climate to any other grid cell (recipient) under future climate.
+# Here, we use all grid cells with extant spruce populations as donors and all grid cells in eco-regions
+# with extant spruce populations as well as adjacent eco-regions as recipients.
+
