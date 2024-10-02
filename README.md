@@ -155,6 +155,10 @@ The significant admixture present in our collection between wild and cultivated 
 
 To investigate the presence of F1 hybrids I identified a recent devoped Rpackage that allow to identified ancestry-informative markers and estimate their hybrids index with the relative presence of F1, BC1, BC2 or past introgression.  https://omys-omics.github.io/triangulaR/index.html
 
+From the PCA analysis I've diveded the germplasm in Wild and Cultivated using PC1 values <-20 and >40 respectively. The intermidiate genotypes represent admixed genotypes for which hybrid index will be checked
+
+![image](https://github.com/user-attachments/assets/3e2f6668-8e47-4df7-9652-07d6fc575484)
+
 ```
 library(triangulaR)
 # make a pop map
