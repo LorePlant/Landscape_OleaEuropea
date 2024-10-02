@@ -36,7 +36,7 @@ data359<- read.csv("dataset_359_olive.csv", header = TRUE)
 # Mantel test
 The Mantel test allows to conduct a linear regression analysis between the genetic distance and environmental distance. The significance of this regression suggests a Isolation by Environment IBE effect, where individual in ecologically similar locations they are more genetically similar compare to individuals in ecologically diverse locations.
 
-As first step I'm going to estimate the genetic distance as pairwise FST (WC 1984) among the 27 populations using the R package Hierfstat.
+As first step I'm going to estimate the genetic distance as pairwise FST (WC 1984) among the 27 populations using the R package Hierfstat. To run this, I have used a thinned 250Kb version of the vcf file.
 ```
 library("hierfstat")
 pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for each individual
@@ -150,7 +150,31 @@ The result confirmes the significant (P<0.01) and moderate correlation (r:0.24) 
 
 ![partial_mantel_olive](https://github.com/user-attachments/assets/32430757-a42f-4b22-b496-ec5b2480ab37)
 
+# indentify recent hybrids vs past introgression
+The significant admixture present in our collection between wild and cultivated material can be derived from recent crossing forming F1 hybrids or from past generations of crossing where natural selection had the possibilty to act. The GEA identification presume that the associated QTL derived from processes of local adaptation where environmental selection had the generational time to act. In our case the cultivated genome from cultivars vegetatevly progated mainly evolved in the eastern part of the mediterrenan basin, so it is paramount to identify the presence of recent F1 hybrids where the cultivated genome have been recently introduced and where selections did not have the generational time to act.
 
+To investigate the presence of F1 hybrids I identified a recent devoped Rpackage that allow to identified ancestry-informative markers and estimate their hybrids index with the relative presence of F1, BC1, BC2 or past introgression.  https://omys-omics.github.io/triangulaR/index.html
+
+```
+library(triangulaR)
+# make a pop map
+popmap<-read.table("popmap.txt")
+
+# Create a new vcfR object composed only of sites above the given allele frequency difference threshold
+vcfR.diff <- alleleFreqDiff(vcfR = genoLAND.VCF, pm = popmap, p1 = " P1", p2 = "P2", difference = 0.7)
+#"3042 sites passed allele frequency difference threshold"
+
+# Calculate hybrid index and heterozygosity for each sample. Values are returned in a data.frame
+hi.het <- hybridIndex(vcfR = vcfR.diff, pm = popmap, p1 = "P1", p2 = "P2")
+
+# Generate colors (or leave blank to use default)
+cols <- c("#af8dc3", "#7fbf7b", "#bababa", "#878787", "#762a83", "#1b7837")
+# View triangle plot
+jpeg(file = "/lustre/rocchettil/triangular_plot.jpeg")
+triangle.plot(hi.het, colors = cols)
+dev.off()
+```
+![triangular_plot](https://github.com/user-attachments/assets/a65ae610-7812-4c6f-9181-244587150fe2)
 
 
 # Redundancy analysis
