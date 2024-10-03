@@ -244,6 +244,7 @@ The result show that by remouving the F1 hybrids and genotypes with high members
 
 Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
 
+
 ```
 for (i in 1:ncol(genotype))
 {
@@ -252,10 +253,6 @@ for (i in 1:ncol(genotype))
 
 write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
 ```
-
-```
-data(gl.genoLAND)
-x.cows <- tab(microbov, freq=TRUE, NA.method="mean")
 
 # Redundancy analysis
 
