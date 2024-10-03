@@ -487,14 +487,16 @@ write.table(qvalue, "Temp_GEA_Olive")
 
 library(qqman)
 Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(3.797084e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000380394), genomewideline = -log10(4.45474e-07))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000909433), genomewideline = -log10(3.797084e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000380394), genomewideline = -log10(4.45474e-07))
 dev.off()
 ```
-![RDA_temp_biplot](https://github.com/user-attachments/assets/aa4cc238-7d40-418d-bb22-924c609748fa)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/383f0850-efb7-4754-92de-2eca06ccc75b)
-![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/1c07b997-b249-4e1a-b43b-f0881ce38239)
+
+![RDA_temp_biplot](https://github.com/user-attachments/assets/983e4ecf-e8a7-4ba9-9a9f-3052230b08c8)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/a08a139c-5343-4036-a29d-434ddfaa7da6)
+![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/41a941da-a79f-4a1d-8011-8e2c2265ef8f)
+
 
 
 > Precipitation
