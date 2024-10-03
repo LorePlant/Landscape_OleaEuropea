@@ -493,9 +493,9 @@ manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0
 dev.off()
 ```
 
-![RDA_temp_biplot](https://github.com/user-attachments/assets/983e4ecf-e8a7-4ba9-9a9f-3052230b08c8)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/a08a139c-5343-4036-a29d-434ddfaa7da6)
-![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/41a941da-a79f-4a1d-8011-8e2c2265ef8f)
+![RDA_temp_biplot](https://github.com/user-attachments/assets/d8c2700f-4290-4703-a7c0-932b6b09d4bf)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/ae8c7f76-57ef-4767-a2fc-1a6b7870bab3)
+![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/e4de8828-592d-471d-bdde-036a82987bc2)
 
 
 
