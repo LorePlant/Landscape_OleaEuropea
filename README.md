@@ -9,7 +9,7 @@ library(vcfR)
 library(adegenet)
 
 setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
 genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
@@ -200,6 +200,44 @@ genotype<-as.data.frame(gl.genoLAND)
 #genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
 
 ```
+Enter the population informations. For simplicity I al going to use a popolation differentiations based on geographic origins: (Morocco, Spain, France, Corse)
+```
+pop_region<-read.table("pops_geo_regions.txt") #one column table wih pop info for each individual
+geneIndpop <- vcfR2genind(genoLAND.VCF, pop=pop_region)#transfrom file in genind object
+
+x.olive <- tab(geneIndpop, freq=TRUE, NA.method="mean")
+pca.olive <- dudi.pca(x.olive, center=TRUE, scale=FALSE)
+popfac<-as.factor(pop_region$V1)
+s.class(pca.olive$li, fac=popfac,col=c("darkorange", "darkgreen", "blue", "red"))
+jpeg(file = "/lustre/rocchettil/PCA_202.jpeg")
+s.class(pca.olive$li, fac=popfac,col=c("darkorange", "darkgreen", "blue", "red"))
+dev.off()
+
+eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
+head(eig.perc)
+```
+We can compare the result of PCA 202 with the PCA 359 to see if by remouving the F& hybrids and largely cultivated material we can better explain structure of the Wild
+```
+genoLAND359.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+pop_region_359<-read.table("pops_regions_359.txt") #one column table wih pop info for each individual
+geneIndpop359 <- vcfR2genind(genoLAND359.VCF, pop=pop_region_359)#transfrom file in genind object
+
+x.olive_359 <- tab(geneIndpop359, freq=TRUE, NA.method="mean")
+pca.olive359 <- dudi.pca(x.olive_359, center=TRUE, scale=FALSE)
+popfac359<-as.factor(pop_region_359$V1)
+s.class(pca.olive359$li, fac=popfac359,col=c("darkorange", "darkgreen", "blue", "red"))
+jpeg(file = "/lustre/rocchettil/PCA_359.jpeg")
+s.class(pca.olive359$li, fac=popfac359,col=c("darkorange", "darkgreen", "blue", "red"))
+dev.off()
+
+eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
+head(eig.perc)
+```
+The result show that by remouving the F1 hybrids and genotypes with high membership from cultivated material we can asses in a better way the populations group among the wild germplasm. In details, in the PCA202 we can appreciate the group differentiation between wild of the south (Morocco) and wild of the north (Corse)
+![PCA_359](https://github.com/user-attachments/assets/ca186106-4d65-43e0-bcf4-f59a1b3203f8)
+
+![PCA_202](https://github.com/user-attachments/assets/048cd8fa-5cd8-431a-b982-1076a52f124b)
+
 Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
 
 ```
