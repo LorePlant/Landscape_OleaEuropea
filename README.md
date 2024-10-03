@@ -186,6 +186,35 @@ Following this I used a more stringent selection selecting individuals with ****
 
 ![image](https://github.com/user-attachments/assets/82d441d1-70e4-432c-a08a-c5dd92ea617d)
 
+
+# Principal component analysis
+Principal Component Analysis (PCA) is the amongst the most common multivariate analyses
+used in genetics.
+Let's first upload the new genotypic datafile of 202 individuals and applying the MAF 0.05.
+
+```
+setwd("/lustre/rocchettil")
+genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
+genotype<-as.data.frame(gl.genoLAND)
+#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+
+```
+Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
+
+```
+for (i in 1:ncol(genotype))
+{
+  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
+}
+
+write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
+```
+
+```
+data(gl.genoLAND)
+x.cows <- tab(microbov, freq=TRUE, NA.method="mean")
+
 # Redundancy analysis
 
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allows to dissect the the total genetic variance among the environment, geographic and demographic components. 
