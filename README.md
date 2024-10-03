@@ -284,12 +284,12 @@ The following chuck of code illustrates the step undertaken for assembly the dat
 ```
 #standardize bioclim variable
 data202<- read.csv("dataset_202_west.csv", header = TRUE)
-PCbio = data202[ ,16:29]
-Env <- scale(PCbio, center=TRUE, scale=TRUE)
+bio = data202[ ,16:29]
+Env <- scale(bio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
 #combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group,data359$latitude_range, data359$region, data359$PC1, Env)
+Variables <- data.frame(data202$IDSample, data202$long, data202$lat, data202$group,data202$latitude_range, data202$region, data202$PC1, data202$PC2, Env)
 names(Variables)[1]<- paste("geno")
 names(Variables)[2]<- paste("long")
 names(Variables)[3]<- paste("lat")
@@ -297,6 +297,7 @@ names(Variables)[4]<- paste("group")
 names(Variables)[5]<- paste("latitude_range")
 names(Variables)[6]<- paste("region")
 names(Variables)[7]<- paste("PC1")
+names(Variables)[7]<- paste("PC2")
  ```
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
@@ -325,12 +326,13 @@ sqrt(vif.cca(RDAgeo_env))
 
 |  bio2    |   bio10   |   bio11  |  bio15  |   bio18  |   bio19  | 
 |---------|----------|---------|----------|-----------|----------|
-1.655992| 1.287833 |2.315390 |2.776476 |1.942473| 1.371975|
+1.939547| 1.368211 |2.865102 |3.484063 |1.964664| 1.438614|
+
 
 The variable selected showed low inflation factor due to correlation
 
 
-In the next part I'm preparing the data for plotting
+In the next part I'm preparing the data for plotting the RDA biplot, where genotypes will be presented by dots and loadings will be the environmental variable
 ```
 #write.table(score, "Genotypevalue_RDAgeo_env")
 summary(eigenvals(RDAgeo_env, model = "constrained"))
@@ -354,7 +356,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("blue", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 74 %") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 46 %") + ylab("RDA 2: 17 %") +
   guides(color=guide_legend(title="Genetic group")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -362,8 +364,7 @@ jpeg(file = "/lustre/rocchettil/RDA_env.jpeg")
 plot(loading_RDAgeo_env)
 dev.off()
 ```
-
-![RDA_env](https://github.com/user-attachments/assets/8e2b2e1a-b648-48d4-ac8f-bf072b731df5)
+![RDA_env](https://github.com/user-attachments/assets/5e602783-0122-4339-833c-00e45be20fd0)
 
 
 
@@ -377,7 +378,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","red", "darkorange")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 74%") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 46%") + ylab("RDA 2: 17 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -386,8 +387,7 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-
-![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/77470479-2423-4acd-8781-eb9ec1f32a3d)
+![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/d040ec52-5a43-4cf6-801c-5a8294f92dc8)
 
 
 
@@ -402,7 +402,7 @@ loading_RDAgeo_env<-ggplot() +
   scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) + 
   geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 74%") + ylab("RDA 2: 8 %") +
+  xlab("RDA 1: 46%") + ylab("RDA 2: 17 %") +
   guides(color=guide_legend(title="latitude range")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
@@ -411,12 +411,13 @@ plot(loading_RDAgeo_env)
 dev.off()
 ```
 
-
-![RDA_geo_env_region](https://github.com/user-attachments/assets/31019223-6a4c-4687-bbc6-d4965e3315a8)
-
+![RDA_geo_env_region](https://github.com/user-attachments/assets/cf1b91aa-11d0-4055-821d-f84b20e400c1)
 
 
-The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with bio6 (Min Temperature of Coldest Month) and bio 15 (Precipitation Seasonality) . The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
+
+
+The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with temperature variable bio10 and bio11 and precipitation seasonality bio15. Among the wild group the group of Corse is distinguished by the southern Wild for winter precipitation bio19.
+The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
 
 RDA can be used for variance partitioning
 
