@@ -283,7 +283,8 @@ write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
 The following chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
 ```
 #standardize bioclim variable
-PCbio = data359[ ,16:29]
+data202<- read.csv("dataset_202_west.csv", header = TRUE)
+PCbio = data202[ ,16:29]
 Env <- scale(PCbio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
