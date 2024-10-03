@@ -234,9 +234,13 @@ eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
 head(eig.perc)
 ```
 The result show that by remouving the F1 hybrids and genotypes with high membership from cultivated material we can asses in a better way the populations group among the wild germplasm. In details, in the PCA202 we can appreciate the group differentiation between wild of the south (Morocco) and wild of the north (Corse)
+
+
 ![PCA_359](https://github.com/user-attachments/assets/ca186106-4d65-43e0-bcf4-f59a1b3203f8)
+>PCA from the whole population of 359 individuals
 
 ![PCA_202](https://github.com/user-attachments/assets/048cd8fa-5cd8-431a-b982-1076a52f124b)
+>PCA from the filtered population of 202 individuals
 
 Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
 
