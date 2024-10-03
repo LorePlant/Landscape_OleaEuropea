@@ -180,7 +180,8 @@ dev.off()
 ```
 ![triangular_plot](https://github.com/user-attachments/assets/a65ae610-7812-4c6f-9181-244587150fe2)
 
-In the following figure we can see the  theoretical expectations for combinations of hybrid index and interclass heterozygosity under Hardy-Weinberg Equilibrium (HWE). Following this I selected individuals with **_interclass heterozygosity_** and **_hybrid index_** lower than **0.5** selecting individuals with at least one generation of segregation and selection.
+In the following figure we can see the  theoretical expectations for combinations of hybrid index and interclass heterozygosity under Hardy-Weinberg Equilibrium (HWE). In Larson et al 2013 F1 1 hybrids (hybrid index = 0.5, interspecificheterozygosity ≥ 85%), multi-generation hybrids (hybridindex 0.25–0.75, interspecific heterozygosity < 85%). 
+Following this I used a more stringent selection selecting individuals with ****_interclass heterozygosity_**  < 0.7** and ****_hybrid index_** <  **0.5**** selecting individuals with at least one generation of segregation and selection.
 
 
 ![image](https://github.com/user-attachments/assets/82d441d1-70e4-432c-a08a-c5dd92ea617d)
