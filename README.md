@@ -181,7 +181,7 @@ dev.off()
 ![triangular_plot](https://github.com/user-attachments/assets/a65ae610-7812-4c6f-9181-244587150fe2)
 
 In the following figure we can see the  theoretical expectations for combinations of hybrid index and interclass heterozygosity under Hardy-Weinberg Equilibrium (HWE). In Larson et al 2013 F1 1 hybrids (hybrid index = 0.5, interspecificheterozygosity ≥ 85%), multi-generation hybrids (hybridindex 0.25–0.75, interspecific heterozygosity < 85%). 
-Following this I used a more stringent selection selecting individuals with ****_interclass heterozygosity_**  < 0.7** and ****_hybrid index_** <  **0.5**** selecting individuals with at least one generation of segregation and selection.
+Following this I used a more stringent selection selecting individuals with ****_interclass heterozygosity_**  < 0.7** and ****_hybrid index_** <  **0.5**** selecting individuals with at least one generation of segregation and selection, obtaining a total of 202 genotypes 62 admixed and 140 Wild.
 
 
 ![image](https://github.com/user-attachments/assets/82d441d1-70e4-432c-a08a-c5dd92ea617d)
@@ -192,7 +192,27 @@ Within the landscape genomic framework, Redundancy analysis (RDA) represent a us
 In this first analysis I used RDA on the following linear model to see if we can detect specif environmental variables diverging Wild vs Admixed genotypes or geographic regions.
  $` Gen \sim Environment `$
 
-The follwing chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
+let's first upload the new genotypic datafile of 202 individuals and applying the MAF 0.05.
+
+```
+setwd("/lustre/rocchettil")
+genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
+genotype<-as.data.frame(gl.genoLAND)
+#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+
+```
+Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
+
+```
+for (i in 1:ncol(genotype))
+{
+  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
+}
+
+write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
+```
+The following chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
 ```
 #standardize bioclim variable
 PCbio = data359[ ,16:29]
