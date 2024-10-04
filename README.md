@@ -568,7 +568,7 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000353514), genomewideline = -log10(3.797084e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000339951095413677), genomewideline = -log10(3.797084e-07))
 dev.off()
 
 #P distribution
@@ -577,9 +577,9 @@ hist(Manhattan_prec$P)
 dev.off()
 
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/cd39c4d4-6b75-44d1-b9a4-9401f4ba0c54)
-![Manh_RDA_prec](https://github.com/user-attachments/assets/5af72acb-9827-4e32-b6a6-7796d845ce2b)
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/0a45d661-3de9-4243-9fa6-5930fe66f796)
+![RDA_prec_biplot](https://github.com/user-attachments/assets/34b802a1-956c-4e34-b410-64ac52d57f28)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/c7b9fe24-edc7-42f3-a9b7-8af09640c2d8)
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/bed97f85-2103-4e53-aa41-15a3f52f0eab)
 
 
 >All together
@@ -643,7 +643,7 @@ dev.off()
 
 ## Enriched RDA
 
-To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 227 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
+To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 755 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation (FDR, q<0.05). In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
@@ -667,12 +667,12 @@ loading_geno_all_enriched<-ggplot() +
   scale_color_manual(values = c("blue", "darkorange")) +
   geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 48%") + ylab("RDA 2: 18%") +
+  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
 loading_geno_all_enriched
-jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot.jpeg")
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_WLD_adm.jpeg")
 plot(loading_geno_all_enriched)
 dev.off()
 write.table(TAB_gen, "geno_all_adaptive_values.txt")
@@ -689,25 +689,27 @@ TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
 loading_geno_all_enriched_region<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = PC1), size = 2.5) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = region), size = 2.5) +
   scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) +
   geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 48%") + ylab("RDA 2: 18%") +
+  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
 loading_geno_all_enriched_region
-jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot.jpeg")
-plot(loading_geno_all_enriched)
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_region.jpeg")
+plot(loading_geno_all_enriched_region)
 dev.off()
 ```
 Correlation PC1 (wild vs adm) and RDA1
 ```
 plot(cor(Geno$RDA1, Geno$PC1))
 ```
+![RDA_all_geno_biplot_WLD_adm](https://github.com/user-attachments/assets/5861860c-c2aa-4d54-b52b-6c43662f91e6)
+![Uploading RDA_all_geno_biplot_region.jpeg…]()
 
-![RDA_all_geno_biplot](https://github.com/user-attachments/assets/d7725d3d-8dfc-4b43-ab93-f2132bf7a33b)
+
 
 The results show a differentiation of WLD and ADM even by considering just GEA SNPS previously identified by correcting for population structure. I belive this suggest a significant differentiation of the two groups, occuping different niche.
 
