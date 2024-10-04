@@ -252,6 +252,7 @@ for (i in 1:ncol(genotype))
 }
 
 write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
+genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
 ```
 
 # Redundancy analysis
@@ -279,6 +280,7 @@ for (i in 1:ncol(genotype))
 }
 
 write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
+genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
 ```
 The following chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
 ```
