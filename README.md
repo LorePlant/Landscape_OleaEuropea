@@ -1,4 +1,4 @@
-## Landscape Olea europea
+![image](https://github.com/user-attachments/assets/0ab4dfcc-4e81-4b93-b2f4-0ee70669eae0)## Landscape Olea europea
 
 This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
@@ -474,7 +474,7 @@ loading_temp<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 46%") + ylab("RDA 2: 29%") +
+  xlab("RDA 1: 39%") + ylab("RDA 2: 33%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -489,15 +489,20 @@ write.table(qvalue, "Temp_GEA_Olive")
 
 library(qqman)
 Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000380394), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.00050309), genomewideline = -log10(4.45474e-07))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
 manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000380394), genomewideline = -log10(4.45474e-07))
 dev.off()
+
+#P distribution
+jpeg(file = "/lustre/rocchettil/Phist_Manh_RDA_temp")
+hist(Manhattan_temp$P)
+dev.off()
 ```
 
-![RDA_temp_biplot](https://github.com/user-attachments/assets/d8c2700f-4290-4703-a7c0-932b6b09d4bf)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/ae8c7f76-57ef-4767-a2fc-1a6b7870bab3)
-![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/e4de8828-592d-471d-bdde-036a82987bc2)
+![RDA_temp_biplot](https://github.com/user-attachments/assets/a6233e07-da44-47ac-b938-d145319d3d2e)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/358981a9-0cbc-49c5-9c20-96e8d3a30c47)
+![Phist_Manh_RDA__temp](https://github.com/user-attachments/assets/dab56a9f-b89d-4bff-80c9-f7462992348e)
 
 
 
