@@ -1,7 +1,7 @@
 
 ## Landscape Olea europea
 
-This page is created to track down progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
+This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
 
 ## Data input
