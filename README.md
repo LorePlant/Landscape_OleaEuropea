@@ -2,7 +2,7 @@
 
 This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
-## data input
+## Data input
 I started by entering the vcf into R using the vcfR package as follow
 ```
 library(vcfR)
@@ -638,7 +638,7 @@ dev.off()
 ![RDA_all_biplot](https://github.com/user-attachments/assets/8f76c89e-6453-477a-9273-b3ca15eaf00e)
 
 
-**Enriched RDA**
+## Enriched RDA
 
 To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 227 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation. In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
