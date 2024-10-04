@@ -288,12 +288,12 @@ The following chuck of code illustrates the step undertaken for assembly the dat
 ```
 #standardize bioclim variable
 data202<- read.csv("dataset_202_west.csv", header = TRUE)
-bio = data202[ ,16:29]
+bio = data202[ ,17:30]
 Env <- scale(bio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
 #combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data202$IDSample, data202$long, data202$lat, data202$group,data202$latitude_range, data202$region, data202$PC1, data202$PC2, Env)
+Variables <- data.frame(data202$IDSample, data202$long, data202$lat, data202$group,data202$latitude_range, data202$region, data202$PC1, data202$PC2, data202$PC3,  Env)
 names(Variables)[1]<- paste("geno")
 names(Variables)[2]<- paste("long")
 names(Variables)[3]<- paste("lat")
@@ -302,6 +302,7 @@ names(Variables)[5]<- paste("latitude_range")
 names(Variables)[6]<- paste("region")
 names(Variables)[7]<- paste("PC1")
 names(Variables)[8]<- paste("PC2")
+names(Variables)[9]<- paste("PC3")
  ```
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
@@ -428,15 +429,15 @@ RDA can be used for variance partitioning
 
 
 
-#RDA for GEA discovery
+## RDA for Genotype Environment Associations (GEA)
 
-Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1) and Isolation by distanc (lqtitude and longitude) using them as covariates in the RDA model
+Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1 + PC2 + PC3) and geography (latitude and longitude) using them as covariates in the RDA model
 As first attempt I decided to run the anlysis seperate for temperature and precipitation variables.
 
 >Temperature
 
 ```
-RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + lat + long), Variables)
+RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables)
 summary(eigenvals(RDA_temp, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
@@ -476,7 +477,7 @@ loading_temp<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 39%") + ylab("RDA 2: 33%") +
+  xlab("RDA 1: 40%") + ylab("RDA 2: 31%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -491,9 +492,9 @@ write.table(qvalue, "Temp_GEA_Olive")
 
 library(qqman)
 Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.00050309), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000414996314981081), genomewideline = -log10(4.45474e-07))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000380394), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000414996314981081), genomewideline = -log10(4.45474e-07))
 dev.off()
 
 #P distribution
@@ -501,16 +502,16 @@ jpeg(file = "/lustre/rocchettil/Phist_Manh_RDA_temp")
 hist(Manhattan_temp$P)
 dev.off()
 ```
+![RDA_temp_biplot](https://github.com/user-attachments/assets/be1e7698-04e6-4b6e-bac8-4799bb3b6582)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/d4baf3a4-187a-4fac-9c46-7e0a6cb34ec5)
+![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/9e4ede77-6459-4482-8a47-a2361a5f7b6a)
 
-![RDA_temp_biplot](https://github.com/user-attachments/assets/a6233e07-da44-47ac-b938-d145319d3d2e)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/358981a9-0cbc-49c5-9c20-96e8d3a30c47)
-![Phist_Manh_RDA__temp](https://github.com/user-attachments/assets/dab56a9f-b89d-4bff-80c9-f7462992348e)
 
 
 
 > Precipitation
 ```
-RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + lat + long), Variables)
+RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
@@ -550,7 +551,7 @@ loading_prec<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 35%") + ylab("RDA 2: 34%") +
+  xlab("RDA 1: 36%") + ylab("RDA 2: 34%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
