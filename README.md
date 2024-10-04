@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/0ab4dfcc-4e81-4b93-b2f4-0ee70669eae0)## Landscape Olea europea
+![image](https://github.com/user-attachments/assets/126700e4-887a-4405-a0ca-8e7333d9d24f)![image](https://github.com/user-attachments/assets/0ab4dfcc-4e81-4b93-b2f4-0ee70669eae0)## Landscape Olea europea
 
 This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
@@ -508,7 +508,7 @@ dev.off()
 
 > Precipitation
 ```
-RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
+RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + lat + long), Variables)
 summary(eigenvals(RDA_prec, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
@@ -548,7 +548,7 @@ loading_prec<-ggplot() +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 44%") + ylab("RDA 2: 32%") +
+  xlab("RDA 1: 35%") + ylab("RDA 2: 34%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -565,14 +565,23 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000100972), genomewideline = -log10(3.797084e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000353514), genomewideline = -log10(3.797084e-07))
 dev.off()
+
+#P distribution
+jpeg(file = "/lustre/rocchettil/Phist_Manh_RDA_prec.jpeg")
+hist(Manhattan_prec$P)
+dev.off()
+
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/2f6a3ecc-9928-4c98-95f7-7781aea76802)
-![Manh_RDA_prec](https://github.com/user-attachments/assets/8c493917-6826-4495-8ece-25f1076237f0)
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/b539de2e-1114-4c09-8ca4-16e627b53b27)
+![RDA_prec_biplot](https://github.com/user-attachments/assets/cd39c4d4-6b75-44d1-b9a4-9401f4ba0c54)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/5af72acb-9827-4e32-b6a6-7796d845ce2b)
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/0a45d661-3de9-4243-9fa6-5930fe66f796)
+
 
 >All together
+
+Not Updated!!!!!!
 
 In this attempt I am going to run the GEA analysis considering all the bioclimatic variable selected. The derived GEA will be used for the adaptive index projection and Genomic offset estimation
 
