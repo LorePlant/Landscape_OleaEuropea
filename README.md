@@ -1,7 +1,9 @@
-![image](https://github.com/user-attachments/assets/126700e4-887a-4405-a0ca-8e7333d9d24f)![image](https://github.com/user-attachments/assets/0ab4dfcc-4e81-4b93-b2f4-0ee70669eae0)## Landscape Olea europea
 
-This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
+## Landscape Olea europea
+
+This page is created to track down progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
+
 ## Data input
 I started by entering the vcf into R using the vcfR package as follow
 ```
