@@ -707,7 +707,8 @@ Correlation PC1 (wild vs adm) and RDA1
 plot(cor(Geno$RDA1, Geno$PC1))
 ```
 ![RDA_all_geno_biplot_WLD_adm](https://github.com/user-attachments/assets/5861860c-c2aa-4d54-b52b-6c43662f91e6)
-![Uploading RDA_all_geno_biplot_region.jpeg…]()
+
+![RDA_all_geno_biplot_region](https://github.com/user-attachments/assets/ce7d409e-7e60-4180-8560-c08192654459)
 
 
 
