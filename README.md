@@ -299,7 +299,7 @@ names(Variables)[4]<- paste("group")
 names(Variables)[5]<- paste("latitude_range")
 names(Variables)[6]<- paste("region")
 names(Variables)[7]<- paste("PC1")
-names(Variables)[7]<- paste("PC2")
+names(Variables)[8]<- paste("PC2")
  ```
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
