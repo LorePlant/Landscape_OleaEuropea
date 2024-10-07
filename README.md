@@ -989,11 +989,12 @@ writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_ssp
 ```
 I prefere to plot the raster using QGIS.
 
+![image](https://github.com/user-attachments/assets/30ad562d-691c-4ab4-9b58-68864564043a)
 
 
-![GO_projection_2100_IPSL_ssp585](https://github.com/user-attachments/assets/37217ba7-7317-4ad6-90c3-f8b70b118bdf)
+The result show a lower GO at low latitude compared to higher latitude level, suggesting that the current adaptive value of souther genotypes will allow them to continue to grow in future climatic condition.
+The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present.
 
-The result show a lower GO at low latitude compared to higher latitude level, suggesting a higher adaptation of WLD compared to the ADM group.
 
 
 The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
