@@ -862,7 +862,7 @@ plot(distrib_all)
 dev.off()
 ```
 
-
+![RDA_all_geno_biplot_WLD_adm](https://github.com/user-attachments/assets/5861860c-c2aa-4d54-b52b-6c43662f91e6)
 ![image](https://github.com/user-attachments/assets/b8e9090f-da6e-416a-92e7-b056b4d22bcc)
 
 
