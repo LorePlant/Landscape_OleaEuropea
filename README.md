@@ -989,7 +989,7 @@ writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_ssp
 ```
 I prefere to plot the raster using QGIS.
 
-![image](https://github.com/user-attachments/assets/30ad562d-691c-4ab4-9b58-68864564043a)
+![image](https://github.com/user-attachments/assets/a9c385f8-271b-4820-b6f7-0a5074cbe64c)
 
 
 The result show a lower GO at low latitude compared to higher latitude level, suggesting that the current adaptive value of souther genotypes will allow them to continue to grow in future climatic condition.
