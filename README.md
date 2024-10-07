@@ -867,7 +867,7 @@ dev.off()
 
 
 
-# Genomic offset RDA based
+# Local Genomic offset RDA based
 
 Extract future bioclimatic raster file from CHELSA database. In this first step I used predictions 2071-2100 IPSL ssp585.
 ```
@@ -877,12 +877,12 @@ library(raster)
 library("readxl")
 
 
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio2_2100_IPSLssp585.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio10_2100_IPSLssp585.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio11_2100_IPSLssp585.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio15_2100_IPSLssp585.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio18_2100_IPSLssp585.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio19_2100_IPSLssp585.tif"))
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio2_2100_enm.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio10_2100_enm.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio11_2100_enm.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio15_2100_enm.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio18_2100_enm.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/RDA/Local_Offset/2100_IPSL_ssp585/bio19_2100_enm.tif"))
 names(bio2) = 'bio2'
 names(bio10) = 'bio10'
 names(bio11) = 'bio11'
@@ -891,17 +891,16 @@ names(bio18) = 'bio18'
 names(bio19) = 'bio19'
 #stack the different raster file
 ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
-ras_2100_var_genotypes<- data.frame(data359$IDSample, data359$group, extract(ras_2100_var, data359[,9:10]))
-write.table(ras_2100_var_genotypes, ras_2100_var_genotypes.txt")
+ras_2100_var_genotypes<- data.frame(data202$IDSample, data202$group, extract(ras_2100_var, data202[,9:10]))
 write.csv(ras_2100_var_genotypes, "ras_2100_var_genotypes.csv")
 
 ```
 function genomic offset
 ```
+
 #### Function to predict genomic offset from a RDA model
 genomic_offset <- function(RDA, K, env_pres, env_fut, range = NULL, method = "loadings", scale_env, center_env){
-  
-  
+
   # Formatting and scaling environmental rasters for projection
   var_env_proj_pres <- as.data.frame(scale(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
   var_env_proj_fut <- as.data.frame(scale(rasterToPoints(env_fut[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
@@ -975,19 +974,22 @@ genomic_offset <- function(RDA, K, env_pres, env_fut, range = NULL, method = "lo
   # Return projections for current and future climates for each RDA axis, prediction of genetic offset for each RDA axis and a global genetic offset 
   return(list(Proj_pres = Proj_pres, Proj_fut = Proj_fut, Proj_offset = Proj_offset, Proj_offset_global = Proj_offset_global, weights = weights[1:K]))
 }
+
 ```
 
 Genomic offset projection
 ```
-res_RDA_all_proj_2100_ssp585 <- genomic_offset(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, env_fut = ras_2100_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+local_offeset_proj_2100_ssp585 <- genomic_offset(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, env_fut = ras_2100_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
 
-#res_RDA_all_proj_2100_ssp585$Proj_offset_global is the raster file for overall GO
+#local_offeset_proj_2100_ssp585$Proj_offset_global is the raster file for overall GO
 
-plot(res_RDA_all_proj_2100_ssp585$Proj_offset_global)
+plot(local_offeset_proj_2100_ssp585$Proj_offset_global)
 
-writeRaster(res_RDA_all_proj_2100_ssp585$Proj_offset_global,'GO_2100_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
+writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
 ```
 I prefere to plot the raster using QGIS.
+
+
 
 ![GO_projection_2100_IPSL_ssp585](https://github.com/user-attachments/assets/37217ba7-7317-4ad6-90c3-f8b70b118bdf)
 
