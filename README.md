@@ -568,7 +568,7 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000339951095413677), genomewideline = -log10(3.797084e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000339951095413677), genomewideline = -log10(4.45474e-07))
 dev.off()
 
 #P distribution
@@ -645,13 +645,22 @@ dev.off()
 
 To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 755 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation (FDR, q<0.05). In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
 
+
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
 geno_all_enrich<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 ```
->ADM vs WLD
+As confront I'm going to run the same analysis using the most stringent threshold of Bonferroni
+
+```
+geno_all_enrich<-genotype[which((rdadapt_temp$p.values<thres_env)|(rdadapt_prec$p.values<thres_env))]
+RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
+summary(eigenvals(RDA_all_enriched, model = "constrained"))
+```
+
+>ADM vs WLD using FDR
 
 ```
 #plot genotypes
@@ -702,17 +711,45 @@ jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_region.jpeg")
 plot(loading_geno_all_enriched_region)
 dev.off()
 ```
-Correlation PC1 (wild vs adm) and RDA1
-```
-plot(cor(Geno$RDA1, Geno$PC1))
-```
+
 ![RDA_all_geno_biplot_WLD_adm](https://github.com/user-attachments/assets/5861860c-c2aa-4d54-b52b-6c43662f91e6)
 
 ![RDA_all_geno_biplot_region](https://github.com/user-attachments/assets/ce7d409e-7e60-4180-8560-c08192654459)
 
+>ADM vs WLD using Bonferroni
+
+```
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
+
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
+loading_geno_all_enriched<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("blue", "darkorange")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 51%") + ylab("RDA 2: 20%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched
+jpeg(file = "/lustre/rocchettil/RDA_all_geno_biplot_WLD_adm_Bonferroni.jpeg")
+plot(loading_geno_all_enriched)
+dev.off()
+```
+![RDA_all_geno_biplot_WLD_adm_Bonferroni](https://github.com/user-attachments/assets/b11db27b-e089-467c-8156-f3017e735cfc)
 
 
-The results show a differentiation of WLD and ADM even by considering just GEA SNPS previously identified by correcting for population structure. I belive this suggest a significant differentiation of the two groups, occuping different niche.
+The enriched RDA based on GEA-QTLs shows different environmental adaptation of the WILD pop. Specfically, we can distringuish between North Morocco (Mediterrnenan) similar to south Spain from south atlantic Morocco and Corse.
+By doing the same RDA using only the most significant GEA QTLs (Bonferroni threshold) we can not see any differentiation across genetic group or geographic areas. This shows that by lowering the GEA treshold we inevitably include GEA associations that covary with demography and geography.
+The RDA biplot shows that wild and adm have different adaptive landscapes.
+The GEA analysis supposes that this two groups are adapted to the condition where they germinated. COnsidering that the introgressions pressure are different among geographic regions depending on the agriculture olive system, we can not say anything about (mal)adaptive introgression. 
+I belive the only way to hypothesize this is by doing the GEA analysis only on admixed population and check if the GEA QTLs fall into specific wild genomic windows.
+
 
 # Adaptive index projection
 Adaptive indeix function Capblach.
@@ -759,7 +796,7 @@ Create a table of scaled temperature variable
 ```
 
 library('dplyr')
-PCbio = data359[ ,16:29]
+PCbio = data202[ ,17:30]
 vars = PCbio %>% select('bio2','bio10', 'bio11', 'bio15', 'bio18', 'bio19')
 Var_scale <- scale(vars, center=TRUE, scale=TRUE)
 scale_var <- attr(Var_scale, 'scaled:scale')
