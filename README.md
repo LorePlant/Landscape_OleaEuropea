@@ -437,17 +437,17 @@ anova.cca(pRDAclim)
 ## Pure neutral population structure model  
 pRDAstruct <- rda(genotype ~ PC1 + PC2 + PC3 + Condition(long + lat + bio2+bio10+bio11+	bio15	+ bio18 + bio19), Variables)
 RsquareAdj(pRDAstruct)
-anova(pRDAstruct)
+#anova(pRDAstruct)
 ##Pure geography model
 pRDAgeog <- rda(genotype ~ long + lat + Condition(PC1 + PC2 + PC3 +bio2+bio10+bio11+	bio15	+ bio18 + bio19), Variables)
 RsquareAdj(pRDAgeog)
-anova(pRDAgeog)
+#anova(pRDAgeog)
 ```
 
 |Partial RDA models |  variance | ADJ R2 | P(<F) | Proportion of explainable variance | Proportion of total variance |
 |-------------------------------|--------|----------|--------|--------|----------------------------------------------|
 | Full model Y = G+E+Geo+Struct| 0.107|           |       |         |                                              |
-| climate Y = G + E:( Geo + Struct)|  |           |       |         |                                              |
+| climate Y = G + E:( Geo + Struct)| 0.0139 |           |       |         |                                              |
 | geo Y = G + Geo:(E + Struct)|  |           |       |         |                                              |
 | Struct Y = G + Struct:(E + geo)| |           |       |         |                                              |
 | Total unexplained|
