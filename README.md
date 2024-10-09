@@ -446,10 +446,10 @@ RsquareAdj(pRDAgeog)
 
 |Partial RDA models |  variance | ADJ R2 | P(<F) | Proportion of explainable variance | Proportion of total variance |
 |-------------------------------|--------|----------|--------|--------|----------------------------------------------|
-| Full model Y = G+E+Geo+Struct| 0.107|           |       |         |                                              |
-| climate Y = G + E:( Geo + Struct)| 0.0139 |           |       |         |                                              |
-| geo Y = G + Geo:(E + Struct)| 0.006140606 |           |       |         |                                              |
-| Struct Y = G + Struct:(E + geo)| 0.04072004|           |       |         |                                              |
+| Full model Y = G+E+Geo+Struct|   |    0.107        |       |         |                                              |
+| climate Y = G + E:( Geo + Struct)|  |    0.0139       |       |         |                                              |
+| geo Y = G + Geo:(E + Struct)| |           |  0.006     |         |                                              |
+| Struct Y = G + Struct:(E + geo)| |  0.041        |       |         |                                              |
 | Total unexplained|
 | Total variance | |           |       |         |                                              |
 
