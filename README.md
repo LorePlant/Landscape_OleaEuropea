@@ -448,8 +448,8 @@ RsquareAdj(pRDAgeog)
 |-------------------------------|--------|----------|--------|--------|----------------------------------------------|
 | Full model Y = G+E+Geo+Struct| 0.107|           |       |         |                                              |
 | climate Y = G + E:( Geo + Struct)| 0.0139 |           |       |         |                                              |
-| geo Y = G + Geo:(E + Struct)|  |           |       |         |                                              |
-| Struct Y = G + Struct:(E + geo)| |           |       |         |                                              |
+| geo Y = G + Geo:(E + Struct)| 0.006140606 |           |       |         |                                              |
+| Struct Y = G + Struct:(E + geo)| 0.04072004|           |       |         |                                              |
 | Total unexplained|
 | Total variance | |           |       |         |                                              |
 
