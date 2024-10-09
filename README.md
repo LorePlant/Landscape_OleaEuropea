@@ -445,7 +445,7 @@ anova(pRDAgeog)
 ```
 
 |Partial RDA models |  variance | ADJ R2 | P(<F) | Proportion of explainable variance | Proportion of total variance |
--------------------------------------------------------------------------------------------------------------------------
+|-------------------------------|--------|----------|--------|--------|----------------------------------------------|
 | Full model Y = G+E+Geo+Struct|        |           |       |         |                                              |
 | climate Y = G + E:( Geo + Struct)|  |           |       |         |                                              |
 | geo Y = G + Geo:(E + Struct)|  |           |       |         |                                              |
