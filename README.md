@@ -1001,6 +1001,16 @@ The result show a lower GO at low latitude compared to higher latitude level, su
 The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present.
 
 
+>z score
+
+Tentative to normalize the raster file using the zscore
+
+```
+library(spatialEco)
+raster.Zscore(x, p.value = FALSE, file.name = NULL, ...)
+```
+
+
 
 The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
 
