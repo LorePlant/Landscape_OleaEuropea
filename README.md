@@ -651,6 +651,9 @@ To visualize the adaptive differentiation among genotypes, I conducted an additi
 geno_all_enrich<-genotype[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 write.table(geno_all_enrich, "geno_202_GEA_QTLs.txt") #save the new GEA genotype data
 
+#once the dataset was created I can enter the data table with read.table
+geno_all_enrich<- read.table("geno_202_GEA_QTLs.txt", header=TRUE)
+
 RDA_all_enriched<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 ```
