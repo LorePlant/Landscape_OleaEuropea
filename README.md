@@ -1003,12 +1003,22 @@ The Local Genomic offsets reflects the adaptive genomic landscape where the sout
 
 >z score
 
-Tentative to normalize the raster file using the zscore
+Tentative to normalize the raster file using R ongoingthe zscore
 
 ```
 library(spatialEco)
 raster.Zscore(x, p.value = FALSE, file.name = NULL, ...)
 ```
+In the meanwhile I have done a zscore calcolation using raster calculation in QGIS 
+
+![image](https://github.com/user-attachments/assets/02e6484d-449b-4eef-997f-ab2a6704bfb8)
+
+The results highlight the area of Occitanie and central Spain with potential high genomic offsets in 2100 climatic scenario.
+
+
+
+
+
 
 
 
