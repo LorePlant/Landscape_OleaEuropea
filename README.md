@@ -424,10 +424,34 @@ dev.off()
 The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with temperature variable bio10 and bio11 and precipitation seasonality bio15. Among the wild group the group of Corse is distinguished by the southern Wild for winter precipitation bio19.
 The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
 
-RDA can be used for variance partitioning
+## RDA for variance partitioning
 
+```
+RDAwhole_model <- rda(genotype ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19+  PC1 + PC2 + PC3 + lat + long, Variables)
+RsquareAdj(RDAwhole_model)
+anova(RDAwhole_model)
+## Pure climate model
+pRDAclim <- rda(genotype ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19+ Condition(PC1 + PC2 + PC3 + lat + long), Variables)
+RsquareAdj(pRDAclim)
+anova.cca(pRDAclim)
+## Pure neutral population structure model  
+pRDAstruct <- rda(genotype ~ PC1 + PC2 + PC3 + Condition(long + lat + bio2+bio10+bio11+	bio15	+ bio18 + bio19), Variables)
+RsquareAdj(pRDAstruct)
+anova(pRDAstruct)
+##Pure geography model
+pRDAgeog <- rda(genotype ~ long + lat + Condition(PC1 + PC2 + PC3 +bio2+bio10+bio11+	bio15	+ bio18 + bio19), Variables)
+RsquareAdj(pRDAgeog)
+anova(pRDAgeog)
+```
 
-
+|Partial RDA models |  variance | ADJ R2 | P(<F) | Proportion of explainable variance | Proportion of total variance |
+-------------------------------------------------------------------------------------------------------------------------
+| Full model Y = G+E+Geo+Struct|        |           |       |         |                                              |
+| climate Y = G + E:( Geo + Struct)|  |           |       |         |                                              |
+| geo Y = G + Geo:(E + Struct)|  |           |       |         |                                              |
+| Struct Y = G + Struct:(E + geo)| |           |       |         |                                              |
+| Total unexplained|
+| Total variance | |           |       |         |                                              |
 
 ## RDA for Genotype Environment Associations (GEA)
 
