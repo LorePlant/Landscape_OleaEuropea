@@ -1144,6 +1144,24 @@ dev.off()
 Even applying a correction using genotype climatic distance as covariate we can still see a significant difference between Wild and Admixed.
 
 
+
+# RDA on candidate introgression zones
+I identified populations where both wild and admixed occure together. This subset of population can be used to investigate the potetial presence of GEA related to admixture event.
+
+Let's first upload the new genotypic datafile of 85 individuals and applying the MAF 0.05.
+
+```
+setwd("/lustre/rocchettil")
+  genoINTRO.VCF <- read.vcfR("introgressed_region_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genointro <- vcfR2genind(genoINTRO.VCF)#transfrom file in genind object
+genotype_intro<-as.data.frame(gl.genointro)
+write.table(genotype_intro, "geno_86_west_olive_introgressed_MAF005__imputated.txt")
+
+```
+
+
+
+
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
 This code is still under construction. In this part I'm keeping track of the progresses achived.
