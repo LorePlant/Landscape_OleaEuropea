@@ -839,12 +839,12 @@ library(raster)
 library("readxl")
 
 
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio2_current_enm.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio10_current_enm.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio11_current_enm.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio15_current_enm.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio18_current_enm.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio19_current_enm.tif"))
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio2_current_masked.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio10_current_masked.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio11_current_masked.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio15_current_masked.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio18_current_masked.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio19_current_masked.tif"))
 names(bio2) = 'bio2'
 names(bio10) = 'bio10'
 names(bio11) = 'bio11'
@@ -892,7 +892,8 @@ dev.off()
 ```
 
 ![RDA_all_geno_biplot_WLD_adm](https://github.com/user-attachments/assets/5861860c-c2aa-4d54-b52b-6c43662f91e6)
-![image](https://github.com/user-attachments/assets/b8e9090f-da6e-416a-92e7-b056b4d22bcc)
+![image](https://github.com/user-attachments/assets/43f8f775-d8c1-4abe-ab80-9e0d7789d8e3)
+
 
 
 
