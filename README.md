@@ -152,7 +152,7 @@ The result confirmes the significant (P<0.01) and moderate correlation (r:0.24) 
 
 ![partial_mantel_olive](https://github.com/user-attachments/assets/32430757-a42f-4b22-b496-ec5b2480ab37)
 
-# indentify recent hybrids vs past introgression
+# Indentifing recent hybrids vs past introgression
 The significant admixture present in our collection between wild and cultivated material can be derived from recent crossing forming F1 hybrids or from past generations of crossing where natural selection had the possibilty to act. The GEA identification presume that the associated QTL derived from processes of local adaptation where environmental selection had the generational time to act. In our case the cultivated genome from cultivars vegetatevly progated mainly evolved in the eastern part of the mediterrenan basin, so it is paramount to identify the presence of recent F1 hybrids where the cultivated genome have been recently introduced and where selections did not have the generational time to act.
 
 To investigate the presence of F1 hybrids I identified a recent devoped Rpackage that allow to identified ancestry-informative markers and estimate their hybrids index with the relative presence of F1, BC1, BC2 or past introgression.  https://omys-omics.github.io/triangulaR/index.html
@@ -184,7 +184,7 @@ dev.off()
 
 In the following figure we can see the  theoretical expectations for combinations of hybrid index and interclass heterozygosity under Hardy-Weinberg Equilibrium (HWE). In Larson et al 2013 F1 1 hybrids (hybrid index = 0.5, interspecificheterozygosity ≥ 85%), multi-generation hybrids (hybridindex 0.25–0.75, interspecific heterozygosity < 85%). 
 Following this I used a more stringent selection selecting individuals with ****_interclass heterozygosity_**  < 0.7** and ****_hybrid index_** <  **0.5**** selecting individuals with at least one generation of segregation and selection, obtaining a total of 202 genotypes 62 admixed and 140 Wild.
-
+From the results, we can confidently infer that the P2 individuals, those with a high level of ancestry from cultivated germplasm, likely originated from cultivated seeds dispersed by birds, rather than from wild seeds where selection would have had the opportunity to promote a cultivated background after introgression. We can affirm this conclusion due to the high percentage of recent hybridization, which suggests that the introgression is relatively recent in terms of generational time. If historical introgression had occurred, we would expect to see all individuals clustered at the base of the triangle with low levels of interclass heterozygosity.
 
 ![image](https://github.com/user-attachments/assets/82d441d1-70e4-432c-a08a-c5dd92ea617d)
 
