@@ -909,10 +909,10 @@ library("readxl")
 
 bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio2_MPI_ssp585_2100_masked.tif"))
 bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio10_MPI_ssp585_2100_masked.tif"))
-bio11<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
-bio15<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
-bio18<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
-bio19<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
 names(bio2) = 'bio2'
 names(bio10) = 'bio10'
 names(bio11) = 'bio11'
@@ -1015,7 +1015,7 @@ local_offeset_proj_2100_ssp585 <- genomic_offset(RDA = RDA_all_enriched, K = 2, 
 
 plot(local_offeset_proj_2100_ssp585$Proj_offset_global)
 
-writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
+writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_MPI_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
 ```
 I prefere to plot the raster using QGIS.
 
@@ -1148,7 +1148,7 @@ Even applying a correction using genotype climatic distance as covariate we can 
 
 # RDA on candidate introgression zones
 I identified populations where both wild and admixed occure together. This subset of population can be used to investigate the potetial presence of GEA related to admixture event.
-
+The strategy derived from the following assumption. GEA analysis allow to identify QTLs that essentially vary along an environmental cline highilighting local adaptation. According to the demographic findings of a monophyletic origin of the cultivated germplasm from the easter mediterrenean, the cultivated germplasm is less likely to be differentiated along an envirmental gradient. Following this assumption, in admixed populations we should mainly find GEA QTLs beloging the the wild genepool.
 Let's first upload the new genotypic datafile of 85 individuals and applying the MAF 0.05.
 
 ```
@@ -1156,12 +1156,87 @@ setwd("/lustre/rocchettil")
   genoINTRO.VCF <- read.vcfR("introgressed_region_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
 gl.genointro <- vcfR2genind(genoINTRO.VCF)#transfrom file in genind object
 genotype_intro<-as.data.frame(gl.genointro)
+```
+need to remouve NA. Imputation
+
+```
+for (i in 1:ncol(genotype_intro))
+{
+  genotype_intro[which(is.na(genotype_intro[,i])),i] <- median(genotype_intro[-which(is.na(genotype_intro[,i])),i], na.rm=TRUE)
+}
+
 write.table(genotype_intro, "geno_86_west_olive_introgressed_MAF005__imputated.txt")
 
 ```
+Enter csv file with bioclimatic, geographic and PC.
 
+```
+#standardize bioclim variable
+dataintro<- read.csv("introgression_zone.csv", header = TRUE)
+bio = dataintro[ ,17:30]
+Env <- scale(bio, center=TRUE, scale=TRUE)
+Env <- as.data.frame(Env)
 
+#combining geographic, Popstructure, environmental (scaled) variables
+Variables_intro <- data.frame(dataintro$IDSample, dataintro$long, dataintro$lat, dataintro$group,dataintro$latitude_range, dataintro$region, dataintro$PC1, dataintro$PC2, dataintro$PC3,  Env)
+names(Variables_intro)[1]<- paste("geno")
+names(Variables_intro)[2]<- paste("long")
+names(Variables_intro)[3]<- paste("lat")
+names(Variables_intro)[4]<- paste("group")
+names(Variables_intro)[5]<- paste("latitude_range")
+names(Variables_intro)[6]<- paste("region")
+names(Variables_intro)[7]<- paste("PC1")
+names(Variables_intro)[8]<- paste("PC2")
+names(Variables_intro)[9]<- paste("PC3")
+ ```
+GEA Temperature Redundancy analysis
 
+```
+RDA_temp_intro <- rda(genotype_intro ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables_intro)
+summary(eigenvals(RDA_temp, model = "constrained"))
+library(robust)
+remotes::install_github("koohyun-kwon/rdadapt")
+source("./src/rdadapt.R")
+rdadapt<-function(rda,K)
+{
+  zscores<-rda$CCA$v[,1:as.numeric(K)]
+  resscale <- apply(zscores, 2, scale)
+  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
+  lambda <- median(resmaha)/qchisq(0.5,df=K)
+  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
+  qval <- qvalue(reschi2test)
+  q.values_rdadapt<-qval$qvalues
+  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
+}
+rdadapt_temp<- rdadapt(RDA_temp, 2)
+## P-values threshold after Bonferroni correction
+thres_env <- 0.05/length(rdadapt_temp$p.values)
+## Identifying the loci that are below the p-value threshold
+top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
+write.table(top_outliers, "Bonferroni_temp")
+qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
+outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
+
+locus_scores <- scores(RDA_temp, choices=c(1:2), display="species", scaling="none")
+TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
+TAB_loci$type <- "Not associated"
+TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
+TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
+TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
+TAB_var <- as.data.frame(scores(RDA_temp, choices=c(1,2), display="bp"))
+loading_temp<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
+  scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 40%") + ylab("RDA 2: 31%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_temp
+```
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
