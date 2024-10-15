@@ -1019,32 +1019,12 @@ writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_MPI
 ```
 I prefere to plot the raster using QGIS.
 
-![image](https://github.com/user-attachments/assets/a9c385f8-271b-4820-b6f7-0a5074cbe64c)
 
 
 The result show a lower GO at low latitude compared to higher latitude level, suggesting that the current adaptive value of souther genotypes will allow them to continue to grow in future climatic condition.
-The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present.
+The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present. The results highlight the area of Occitanie and central Spain with potential high genomic offsets in 2100 climatic scenario.
 
-
->z score
-
-Tentative to normalize the raster file using R ongoingthe zscore
-
-```
-library(spatialEco)
-raster.Zscore(x, p.value = FALSE, file.name = NULL, ...)
-```
-In the meanwhile I have done a zscore calcolation using raster calculation in QGIS 
-
-![image](https://github.com/user-attachments/assets/02e6484d-449b-4eef-997f-ab2a6704bfb8)
-
-The results highlight the area of Occitanie and central Spain with potential high genomic offsets in 2100 climatic scenario.
-
-
-
-
-
-
+![image](https://github.com/user-attachments/assets/e6652498-a433-43f5-95f1-43f2dae33309)
 
 
 The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
