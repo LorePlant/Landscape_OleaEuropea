@@ -907,12 +907,12 @@ library(raster)
 library("readxl")
 
 
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio2IPSL_2100_masked_enm.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio10IPSL_2100_masked_enm.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio11IPSL_2100_masked_enm.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio15IPSL_2100_masked_enm.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio18IPSL_2100_masked_enm.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/IPSL(france)/IPSLssp585/bio19IPSL_2100_masked_enm.tif"))
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio2_MPI_ssp585_2100_masked.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio10_MPI_ssp585_2100_masked.tif"))
+bio11<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
+bio15<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
+bio18<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
+bio19<- raster(paste("storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
 names(bio2) = 'bio2'
 names(bio10) = 'bio10'
 names(bio11) = 'bio11'
