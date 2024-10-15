@@ -1024,7 +1024,8 @@ I prefere to plot the raster using QGIS.
 The result show a lower GO at low latitude compared to higher latitude level, suggesting that the current adaptive value of souther genotypes will allow them to continue to grow in future climatic condition.
 The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present. The results highlight the area of Occitanie and central Spain with potential high genomic offsets in 2100 climatic scenario.
 
-![image](https://github.com/user-attachments/assets/e6652498-a433-43f5-95f1-43f2dae33309)
+![image](https://github.com/user-attachments/assets/1a42ad8d-b5df-4f11-ac26-0860b5848ad5)
+
 
 
 The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
