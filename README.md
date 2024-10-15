@@ -1193,7 +1193,7 @@ GEA Temperature Redundancy analysis
 
 ```
 RDA_temp_intro <- rda(genotype_intro ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables_intro)
-summary(eigenvals(RDA_temp, model = "constrained"))
+summary(eigenvals(RDA_temp_intro, model = "constrained"))
 library(robust)
 remotes::install_github("koohyun-kwon/rdadapt")
 source("./src/rdadapt.R")
@@ -1208,23 +1208,23 @@ rdadapt<-function(rda,K)
   q.values_rdadapt<-qval$qvalues
   return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
 }
-rdadapt_temp<- rdadapt(RDA_temp, 2)
+rdadapt_temp_intro<- rdadapt(RDA_temp_intro, 2)
 ## P-values threshold after Bonferroni correction
-thres_env <- 0.05/length(rdadapt_temp$p.values)
+thres_env <- 0.05/length(rdadapt_temp_intro$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
-write.table(top_outliers, "Bonferroni_temp")
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
+top_outliers <- data.frame(Loci = colnames(genotype_intro)[which(rdadapt_temp_intro$p.values<thres_env)], p.value = rdadapt_temp_intro$p.values[which(rdadapt_temp_intro$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype_intro)[which(rdadapt_temp_intro$p.values<thres_env)], split = "_"), function(x) x[1])))
+write.table(top_outliers, "Bonferroni_temp_introgression")
+qvalue <- data.frame(Loci = colnames(genotype_intro), p.value = rdadapt_temp_intro$p.values, q.value = rdadapt_temp_intro$q.value)
+outliers <- data.frame(Loci = colnames(genotype_intro)[which(rdadapt_temp_intro$q.values<0.05)], p.value = rdadapt_temp_intro$p.values[which(rdadapt_temp_intro$q.values<0.05)])
 
-locus_scores <- scores(RDA_temp, choices=c(1:2), display="species", scaling="none")
+locus_scores <- scores(RDA_temp_intro, choices=c(1:2), display="species", scaling="none")
 TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
 TAB_loci$type <- "Not associated"
 TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
 TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
 TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
-TAB_var <- as.data.frame(scores(RDA_temp, choices=c(1,2), display="bp"))
-loading_temp<-ggplot() +
+TAB_var <- as.data.frame(scores(RDA_temp_intro, choices=c(1,2), display="bp"))
+loading_temp_intro<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
@@ -1235,8 +1235,18 @@ loading_temp<-ggplot() +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-loading_temp
+loading_temp_intro
 ```
+Prepere a file with only temperature GEA QTL
+
+```
+library(tidyverse)
+vector_gea<- c(top_outliers$Loci)
+GEA_temp_intro<- genotype_intro %>% select(all_of(vector_gea))
+write.table(GEA_temp_intro, "GEA_temp_introgression.txt")
+```
+
+
 
 # Gradient Forest
 Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
