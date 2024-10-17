@@ -1242,20 +1242,25 @@ library(vcfR)
 library(adegenet)
 
 setwd("/lustre/rocchettil")
-
-genoLAND.VCF <- read.vcfR("Oe9_genuine_clean_outliers.annotated.vcf")#import vcf file
-geno_genuine <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
-geno_wild<-as.data.frame(geno_genuine)
-
-for (i in 1:ncol(geno_wild))
-{
-  geno_wild[which(is.na(geno_wild[,i])),i] <- median(geno_wild[-which(is.na(geno_wild[,i])),i], na.rm=TRUE)
-}
 ```
-I created with excell a table with the indivdual name and the different bioclimatic variable 
+load the imputated genotype datafile for the 202 selected individual in .txt 
+```
+genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
+```
+enter the environmental variable table
 
 ```
-Env_tab<- read.table("Env_tab_WLD.txt")
+data202<- read.csv("dataset_202_west.csv", header = TRUE)
+bio = data202[ ,17:30]
+Var <- data.frame(bio$bio2, bio$bio10, bio$bio11, bio$bio15, bio$bio18, bio$bio19)
+
+names(Var)[1]<- paste("bio2")
+names(Var)[2]<- paste("bio10")
+names(Var)[3]<- paste("bio11")
+names(Var)[4]<- paste("bio15")
+names(Var)[5]<- paste("bio18")
+names(Var)[6]<- paste("bio19")
+
 ```
 To run the Gradient Forest function I used the gradient forest package.
 In this link there is a guide https://gradientforest.r-forge.r-project.org/biodiversity-survey.pdf
@@ -1266,9 +1271,9 @@ Once we are sure that the geno_wild dataset and Env_tab dataset are in the same 
 library(gradientForest)
 
 
-gf <- gradientForest(cbind(geno_wild, Env_tab), 
-                     predictor.vars=colnames(Env_tab),
-                     response.vars=colnames(geno_wild), 
+gf <- gradientForest(cbind(genotype, Var), 
+                     predictor.vars=colnames(Var),
+                     response.vars=colnames(genotype), 
                      ntree=500, #set the number of individual decision tree
                      trace=TRUE)
 ```
