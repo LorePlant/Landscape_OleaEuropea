@@ -1293,8 +1293,7 @@ plot(gf)
 plot(gf, plot.type = "S", imp.vars = most_important,leg.posn = "topright", cex.legend = 0.4, cex.axis = 0.6, cex.lab = 0.7, line.ylab = 0.9, par.args = list(mgp = c(1.5,0.5, 0), mar = c(3.1, 1.5, 0.1, 1)))
 ```
 Once the gradient forest model is created we can use it to estimate the adaptive component of each environmental pixel data. This function allows to map at the geographic level the biological adaptive space.
-To do so we use raster file from CHELSA dataset previosuly clipped for our study area using QGIS. Each raster represent a biovariable value for each pixel. 
-The first step is to stack all the raster information
+To do so we use raster file from CHELSA dataset previosuly clipped for the current olive niche using QGIS. The selected raster are going to be stacked and transformed into a centered spatial grid (x,y) where each environmental variable is given by the average of each pixel.
 ```
 library(raster)
 library("readxl")
@@ -1312,15 +1311,63 @@ names(bio18) = 'bio18'
 names(bio19) = 'bio19'
 #stack the different raster file
 ras_current_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
-```
-The next step will be to trasforme the raster file into a centered spatial grid (x,y) where each environmental variable is given by the average of each pixel.
-
-```
-#spatial grid
-
+#print("current spatial grid")
 coord_r<-rasterToPoints(ras_current_var, spatial = TRUE)
-map_pts<-data.frame(x = coordinates(coord_r)[,1], y=coordinates(coord_r)[,2], coord_r@data)
+current_pixel<-data.frame(x = coordinates(coord_r)[,1], y=coordinates(coord_r)[,2], coord_r@data)
 ```
+The same procedure for the future climatic scenario. The raster file derived from CHELSA MPI 2100 ssp585 scenario. Each raster was clipped using the current olive niche derived from ENM (biomod2)
+```
+library(raster)
+library("readxl")
+
+
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio2_MPI_ssp585_2100_masked.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio10_MPI_ssp585_2100_masked.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
+names(bio2) = 'bio2'
+names(bio10) = 'bio10'
+names(bio11) = 'bio11'
+names(bio15) = 'bio15'
+names(bio18) = 'bio18'
+names(bio19) = 'bio19'
+#stack the different raster file
+ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
+#print("2100 spatial grid")
+coord_2100<-rasterToPoints(ras_2100_var, spatial = TRUE)
+2100_pixel<-data.frame(x = coordinates(coord_2100)[,1], y=coordinates(coord_2100)[,2], coord_2100@data)
+```
+Once the spatial grid for current and future climatic scenarios are uploaded we can apply the GF function to predict the current and future adaptive values and calcolate their distance.
+
+```
+# Genome vulnerability calculation
+# Model current climatic projection
+current.gf <- cbind(current_pixel[,c(1, 2, 3)],
+                    predict(gf,Pixels.historicalMetrics[,importantVAR]))
+# Model future projection overall the considered area
+Proj.gf <- cbind(Pixels.2050Metrics[,c(1,2, 3)], 
+                 predict(gf, Pixels.2050Metrics[,importantVAR]))
+temp <- vector("numeric", length = nrow(Proj.gf))
+for (i in importantVAR) {
+  temp <- temp + (Proj.gf[,i]-Predict.gf[,i])^2
+}
+GenVuln <- cbind(Pixels.2050Metrics[,c(1, 2, 3)], sqrt(temp))
+colnames(GenVuln)[4] <- "vulnerability"
+
+print("Save vulnerability RData")
+save(VARimportance, SNPimportance, importantVAR, Predict.gf, Proj.gf, GenVuln, 
+     file=paste(model, scenario, period, "GFres.RData", sep="_"))
+
+print("Save the GF model RData")
+save(gf, file=paste0(model, "_GFmodel.RData"))
+```
+
+
+
+
+
 Subsequently we are going to use the GF function to estimate the adaptive value for each environmental data point.
 ```
 library(tidyr)
