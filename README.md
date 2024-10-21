@@ -1276,7 +1276,7 @@ gf <- gradientForest(cbind(genotype, Var),
                      predictor.vars=colnames(Var),
                      response.vars=colnames(genotype), 
                      ntree=500, #set the number of individual decision tree
-                     trace=TRUE)
+                     corr.threshold=0.5, trace=F)
 ```
 From this function we can print:
 
@@ -1339,29 +1339,38 @@ ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
 coord_2100<-rasterToPoints(ras_2100_var, spatial = TRUE)
 2100_pixel<-data.frame(x = coordinates(coord_2100)[,1], y=coordinates(coord_2100)[,2], coord_2100@data)
 ```
-Once the spatial grid for current and future climatic scenarios are uploaded we can apply the GF function to predict the current and future adaptive values and calcolate their distance.
+Once the spatial grid for current and future climatic scenarios are uploaded we can apply the GF function to predict the current and future adaptive values and calcolate their distance (Genomic Offsets - GO).
 
 ```
 # Genome vulnerability calculation
+library(tidyr)
+newmap_pts <- map_pts %>% drop_na()
+imp.var<- names(importance(gf))
 # Model current climatic projection
-current.gf <- cbind(current_pixel[,c(1, 2, 3)],
-                    predict(gf,Pixels.historicalMetrics[,importantVAR]))
+current_pixel <- current_pixel %>% drop_na()
+current.gf <- cbind(current_pixel[,c("x", "y")],
+                    predict(gf,current_pixel[,imp.var]))
 # Model future projection overall the considered area
-Proj.gf <- cbind(Pixels.2050Metrics[,c(1,2, 3)], 
-                 predict(gf, Pixels.2050Metrics[,importantVAR]))
-temp <- vector("numeric", length = nrow(Proj.gf))
-for (i in importantVAR) {
-  temp <- temp + (Proj.gf[,i]-Predict.gf[,i])^2
+2100_pixel <- 2100_pixel %>% drop_na()
+2100_gf <- cbind(2100_pixel[,c("x", "y")], 
+                 predict(gf, 2100_pixel[,imp.var]))
+
+#calcolate distance between current and 2100 prediction
+temp <- vector("numeric", length = nrow(2100_gf))
+for (i in imp.var) {
+  temp <- temp + (2100_gf[,i]-current_gf[,i])^2
 }
-GenVuln <- cbind(Pixels.2050Metrics[,c(1, 2, 3)], sqrt(temp))
-colnames(GenVuln)[4] <- "vulnerability"
+GenVuln <- cbind(current_pixel[,c("x", "y")], sqrt(temp))
+colnames(GenVuln)[3] <- "vulnerability"
 
-print("Save vulnerability RData")
-save(VARimportance, SNPimportance, importantVAR, Predict.gf, Proj.gf, GenVuln, 
-     file=paste(model, scenario, period, "GFres.RData", sep="_"))
+#transform the spatial grid into raster file
+#create the extent and raster
+e <- extent(data.df[,(1:2)])
+r <- raster(e, ncol= , nrow= , crs= "+proj=longlat +datum=WGS84")
+#fill the empty raster with the value og GenVuln column 3
 
-print("Save the GF model RData")
-save(gf, file=paste0(model, "_GFmodel.RData"))
+raster_GO <- rasterize(GenVuln[,1:2], r, GenVuln[,3], fun=mean)
+
 ```
 
 
