@@ -1344,7 +1344,6 @@ Once the spatial grid for current and future climatic scenarios are uploaded we 
 ```
 # Genome vulnerability calculation
 library(tidyr)
-newmap_pts <- map_pts %>% drop_na()
 imp.var<- names(importance(gf))
 # Model current climatic projection
 current_pixel <- current_pixel %>% drop_na()
