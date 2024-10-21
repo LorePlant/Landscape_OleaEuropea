@@ -1260,8 +1260,9 @@ names(Var)[3]<- paste("bio11")
 names(Var)[4]<- paste("bio15")
 names(Var)[5]<- paste("bio18")
 names(Var)[6]<- paste("bio19")
-
 ```
+
+
 To run the Gradient Forest function I used the gradient forest package.
 In this link there is a guide https://gradientforest.r-forge.r-project.org/biodiversity-survey.pdf
 
@@ -1284,6 +1285,8 @@ From this function we can print:
 >split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot.
 
 ```
+VARimportance <- (gf, "Weighted")
+
 most_important <- names(importance(gf))[1:25]
 par(mgp = c(2, 0.75, 0))
 plot(gf)
@@ -1295,36 +1298,27 @@ The first step is to stack all the raster information
 ```
 library(raster)
 library("readxl")
-
-bio1<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio1_studyarea_ext.tif"))
-bio2<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio2_studyarea_ext.tif"))
-bio4<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio4_studyarea_ext.tif"))
-bio6<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio6_studyarea_ext.tif"))
-bio8<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio8_studyarea_ext.tif"))
-bio9<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio9_studyarea_ext.tif"))
-bio12<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio12masked_studyarea_ext.tif"))
-bio14<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio14_studyarea_ext.tif"))
-bio15<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio15_studyarea_ext.tif"))
-bio19<- raster(paste("/lustre/rocchettil/biovar_studyarea/bio19_studyarea_ext.tif"))
-names(bio1) = 'bio1'
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio2_current_masked.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio10_current_masked.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio11_current_masked.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio15_current_masked.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio18_current_masked.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio19_current_masked.tif"))
 names(bio2) = 'bio2'
-names(bio4) = 'bio4'
-names(bio6) = 'bio6'
-names(bio8) = 'bio8'
-names(bio9) = 'bio9'
-names(bio12) = 'bio12'
-names(bio14) = 'bio14'
+names(bio10) = 'bio10'
+names(bio11) = 'bio11'
 names(bio15) = 'bio15'
+names(bio18) = 'bio18'
 names(bio19) = 'bio19'
 #stack the different raster file
-ras_current<-stack(c(bio1, bio2, bio4, bio6, bio8, bio9, bio12, bio14, bio15, bio19))
+ras_current_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
 ```
 The next step will be to trasforme the raster file into a centered spatial grid (x,y) where each environmental variable is given by the average of each pixel.
 
 ```
 #spatial grid
 
-coord_r<-rasterToPoints(ras_current, spatial = TRUE)
+coord_r<-rasterToPoints(ras_current_var, spatial = TRUE)
 map_pts<-data.frame(x = coordinates(coord_r)[,1], y=coordinates(coord_r)[,2], coord_r@data)
 ```
 Subsequently we are going to use the GF function to estimate the adaptive value for each environmental data point.
