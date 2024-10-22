@@ -1337,7 +1337,7 @@ names(bio19) = 'bio19'
 ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
 #print("2100 spatial grid")
 coord_2100<-rasterToPoints(ras_2100_var, spatial = TRUE)
-2100_pixel<-data.frame(x = coordinates(coord_2100)[,1], y=coordinates(coord_2100)[,2], coord_2100@data)
+pixel_2100<-data.frame(x = coordinates(coord_2100)[,1], y=coordinates(coord_2100)[,2], coord_2100@data)
 ```
 Once the spatial grid for current and future climatic scenarios are uploaded we can apply the GF function to predict the current and future adaptive values and calcolate their distance (Genomic Offsets - GO).
 
@@ -1350,9 +1350,9 @@ current_pixel <- current_pixel %>% drop_na()
 current.gf <- cbind(current_pixel[,c("x", "y")],
                     predict(gf,current_pixel[,imp.var]))
 # Model future projection overall the considered area
-2100_pixel <- 2100_pixel %>% drop_na()
-2100_gf <- cbind(2100_pixel[,c("x", "y")], 
-                 predict(gf, 2100_pixel[,imp.var]))
+pixel_2100 <- pixel_2100 %>% drop_na()
+2100_gf <- cbind(pixel_2100[,c("x", "y")], 
+                 predict(gf, pixel_2100[,imp.var]))
 
 #calcolate distance between current and 2100 prediction
 temp <- vector("numeric", length = nrow(2100_gf))
