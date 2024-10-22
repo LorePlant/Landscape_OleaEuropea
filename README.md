@@ -1351,24 +1351,51 @@ current.gf <- cbind(current_pixel[,c("x", "y")],
                     predict(gf,current_pixel[,imp.var]))
 # Model future projection overall the considered area
 pixel_2100 <- pixel_2100 %>% drop_na()
-2100_gf <- cbind(pixel_2100[,c("x", "y")], 
+gf_2100 <- cbind(pixel_2100[,c("x", "y")], 
                  predict(gf, pixel_2100[,imp.var]))
 
 #calcolate distance between current and 2100 prediction
-temp <- vector("numeric", length = nrow(2100_gf))
+temp <- vector("numeric", length = nrow(gf_2100))
 for (i in imp.var) {
-  temp <- temp + (2100_gf[,i]-current_gf[,i])^2
+  temp <- temp + (gf_2100[,i]-current.gf[,i])^2
 }
 GenVuln <- cbind(current_pixel[,c("x", "y")], sqrt(temp))
 colnames(GenVuln)[3] <- "vulnerability"
+write.table(GenVuln, "GO_gradientForest.txt")
+
+
+## plotting
+library(tidyverse)
+library(rnaturalearth)
+plot(GenVuln[, c("x", "y")], col= vulnerability)
+
+library(maps)
+library(mapdata)
+library(mapproj)
+mapdata<-map_data("world", region =c("France", "Spain"))
+a<-ggplot(data = GenVuln, aes(x=x, y=y))+
+ geom_polygon(mapdata, mapping = aes(x=long, y=lat, group = group))+
+  coord_map('polyconic')+
+  geom_point(aes(color = vulnerability))+
+scale_color_gradient2(low = "blue",high = "red", space = "Lab" )
+ 
+
+
+
 
 #transform the spatial grid into raster file
 #create the extent and raster
-e <- extent(data.df[,(1:2)])
-r <- raster(e, ncol= , nrow= , crs= "+proj=longlat +datum=WGS84")
+e <- extent(GenVuln[,(1:2)])
+r <- raster(e, ncol= 43200, nrow=20880 , crs= "+proj=longlat +datum=WGS84")
 #fill the empty raster with the value og GenVuln column 3
 
-raster_GO <- rasterize(GenVuln[,1:2], r, GenVuln[,3], fun=mean)
+raster_GO <- rasterize(GenVuln[,1:2], r, GenVuln[,3])
+writeRaster(raster_GO, 'Genomic_offset_GF.tif')
+
+#create a custom pallate
+rgb.pal <- colorRampPalette(c("snow1","snow2","light blue","blue","dark blue", "orange","red"), space = "rgb")
+plot(raster_GO, col=rgb.pal(200), xlab="Lon", ylab="Lat", main=paste("Horizontal Reflectivity"),
+     legend.args=list(text=paste0("zhh [db]"), side=4, font=2, line=2.5, cex=0.8))
 
 ```
 
