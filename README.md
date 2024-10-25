@@ -1362,7 +1362,15 @@ for (i in imp.var) {
 GenVuln <- cbind(current_pixel[,c("x", "y")], sqrt(temp))
 colnames(GenVuln)[3] <- "vulnerability"
 write.table(GenVuln, "GO_gradientForest.txt")
+```
+The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
 
+![image](https://github.com/user-attachments/assets/701e6fcd-bb5f-4194-a335-c3ae043dc5f7)
+
+
+
+
+In this temptaive I'm trying to map the spatial pixel grid using ggplot without much success. The QGIS output is better
 
 ## plotting
 library(tidyverse)
