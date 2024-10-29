@@ -271,6 +271,7 @@ setwd('/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lo
 genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
+genotype<-genotype %>% select(ends_with(".0"))
 #genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
 
 ```
@@ -517,21 +518,19 @@ write.table(qvalue, "Temp_GEA_Olive")
 
 library(qqman)
 Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000414996314981081), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.0004206571), genomewideline = -log10(8.90948e-07))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000414996314981081), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.0004206571), genomewideline = -log10(8.90948e-07))
 dev.off()
 
 #P distribution
 jpeg(file = "/lustre/rocchettil/Phist_Manh_RDA_temp")
-hist(Manhattan_temp$P)
+  hist(Manhattan_temp$P)
 dev.off()
 ```
-![RDA_temp_biplot](https://github.com/user-attachments/assets/be1e7698-04e6-4b6e-bac8-4799bb3b6582)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/d4baf3a4-187a-4fac-9c46-7e0a6cb34ec5)
-![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/9e4ede77-6459-4482-8a47-a2361a5f7b6a)
-
-
+![RDA_temp_biplot](https://github.com/user-attachments/assets/2ba5bb2d-90a9-41f8-8a7f-8eabc41dc967)
+![Manh_RDA_temp](https://github.com/user-attachments/assets/31f0dfdb-f3c6-46d6-9b2b-ec013912f6a8)
+![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/dff5a23d-7370-4abb-86b2-f5fcc482d74b)
 
 
 > Precipitation
@@ -922,6 +921,7 @@ gl.genoLAND <- vcfR2genind(geno359GEA.VCF)#transfrom file in genind object
 gl.genoLAND <- vcf2geno("359_genotypes_GEA_filtered.vcf.recode.vcf")#transfrom file in genind object
 geno<-read.table("359_genotypes_GEA_filtered.vcf.recode.geno")
 genotype<-as.data.frame(gl.genoLAND)
+genotype %>% select(ends_with(".0"))
 #genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
 
 ```
