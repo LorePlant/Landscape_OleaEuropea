@@ -592,7 +592,7 @@ write.table(qvalue, "Prec_GEA_Olive")
 library(qqman)
 Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.000339951095413677), genomewideline = -log10(4.45474e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.0003300502), genomewideline = -log10(8.90948e-07))
 dev.off()
 
 #P distribution
@@ -601,9 +601,9 @@ hist(Manhattan_prec$P)
 dev.off()
 
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/34b802a1-956c-4e34-b410-64ac52d57f28)
-![Manh_RDA_prec](https://github.com/user-attachments/assets/c7b9fe24-edc7-42f3-a9b7-8af09640c2d8)
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/bed97f85-2103-4e53-aa41-15a3f52f0eab)
+![RDA_prec_biplot](https://github.com/user-attachments/assets/44ccd4e3-5a74-41a0-a4e3-4b748d6b12c5)
+![Manh_RDA_prec](https://github.com/user-attachments/assets/fe009855-07ce-4f75-af66-7076c0e563c5)
+![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/7914d354-7468-4581-85be-769b7ad91afb)
 
 
 >All together
