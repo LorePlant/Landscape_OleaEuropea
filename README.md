@@ -907,7 +907,20 @@ Filter the original dataset of 359 genotypes for only SNP detected by the previo
 ```
 
 geno359GEA.VCF <- read.vcfR("359_genotypes_GEA_filtered.vcf.recode.vcf")#import vcf file
+genotype <- geno359GEA.VCF@gt[,-1]
+vcf2geno <- function(vec) {
+  vec <- as.character(vec)
+  vec[vec=="0/0"] <- 0
+  vec[vec=="0/1"] <- 1
+  vec[vec=="1/1"] <- 2
+  vec[vec=="./."] <- NA
+  return(as.integer(vec))
+}
+  geno <- apply(genotype, 1, vcf2geno)
+
 gl.genoLAND <- vcfR2genind(geno359GEA.VCF)#transfrom file in genind object
+gl.genoLAND <- vcf2geno("359_genotypes_GEA_filtered.vcf.recode.vcf")#transfrom file in genind object
+geno<-read.table("359_genotypes_GEA_filtered.vcf.recode.geno")
 genotype<-as.data.frame(gl.genoLAND)
 #genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
 
