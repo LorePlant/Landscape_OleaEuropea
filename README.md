@@ -955,6 +955,26 @@ RDA_359GEA<-rda(genotype ~ data359.bio2 + data359.bio10 + data359.bio11 + data35
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 ```
 
+```
+#plot genotypes
+
+TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
+
+Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
+loading_geno_all_enriched<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("blue", "darkorange")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
+  guides(color=guide_legend(title="Locus type")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+loading_geno_all_enriched
+```
 
 # Local Genomic offset RDA based
 
