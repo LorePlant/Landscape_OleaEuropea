@@ -930,20 +930,28 @@ head(eig.perc)
 
 hybrid_pop<- read.table("hybrid_index_359.txt", header = T)
 hybrid_pop$hybrid_classes<- "hybrid_classes"
-hybrid_pop$hybrid_classes[hybrid_pop$names%which%outliers$Loci] <- "FDR"
+hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_classes & ((hybrid_pop$hybrid.index > 0.49 & hybrid_pop$hybrid.index < 0.55 )& (hybrid_pop$heterozygosity > 0.84))] <- "F1"
+
+hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_classes & (hybrid_pop$hybrid.index < 0.25 )& (hybrid_pop$heterozygosity > 0.84))] <- "BC1 wild"
 
 ```
 
 ```
-genotype359<- read.table("geno_359_west_olive_MAF005__imputated.txt", header=TRUE)
-#partial redundancy analysis (RDA only with GEA QTL)
-geno_359_GEA<-genotype359[which((rdadapt_temp$p.values<thres_env)|(rdadapt_prec$p.values<thres_env))]
-write.table(geno_359_GEA, "geno_359_GEadaptive.txt") #save the new GEA genotype data
+#standardize bioclim variable
+data359<- read.csv("dataset_359_olive.csv", header = TRUE)
+bio = data.frame (data359$bio2, data359$bio10, data359$bio11, data359$bio15, data359$bio18, data359$bio19)
+Env <- scale(bio, center=TRUE, scale=TRUE)
+Env <- as.data.frame(Env)
 
-#once the dataset was created I can enter the data table with read.table
-geno_359_GEA<- read.table("geno_359_GEadaptive.txt", header=TRUE)
+#combining geographic, Popstructure, environmental (scaled) variables
+Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group, data359$latitude_range,  Env)
+names(Variables)[1]<- paste("geno")
+names(Variables)[2]<- paste("long")
+names(Variables)[3]<- paste("lat")
+names(Variables)[4]<- paste("group")
+names(Variables)[5]<- paste("latitude_range")
 
-RDA_359GEA<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
+RDA_359GEA<-rda(genotype ~ data359.bio2 + data359.bio10 + data359.bio11 + data359.bio15	+ data359.bio18 + data359.bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
 ```
 
