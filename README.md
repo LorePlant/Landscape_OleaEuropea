@@ -267,6 +267,7 @@ let's first upload the new genotypic datafile of 202 individuals and applying th
 
 ```
 setwd("/lustre/rocchettil")
+setwd('/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo')
 genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
@@ -895,6 +896,56 @@ dev.off()
 ![image](https://github.com/user-attachments/assets/43f8f775-d8c1-4abe-ab80-9e0d7789d8e3)
 
 
+# estimation of genomic offset between wild and domesticated
+
+The previously identified GEA from the wild dataset represent QTLs involved in adaptation in the western Mediterrenean. Does the domesticated germplasm cultivated in this region have the same adaotive value? To answer this question we can enter in the RDA model the domesticated genotype info filtered for the wild GEA QTL. The idea is to measure for each pixel (each pixel have the respective environmental variable) the distance between the wild adaptive value and the domesticated adaptive value. 
+
+The first step is to visualize the genetic variation of domesticated genotypes uising only GEA SNPs. To do so we are going to use a PCA.
+
+Filter the original dataset of 359 genotypes for only SNP detected by the previous GEA analysis.
+
+```
+
+geno359GEA.VCF <- read.vcfR("359_genotypes_GEA_filtered.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(geno359GEA.VCF)#transfrom file in genind object
+genotype<-as.data.frame(gl.genoLAND)
+#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+
+```
+Enter the population informations. For simplicity I al going to use a popolation differentiations based on geographic origins: (Morocco, Spain, France, Corse)
+```
+pop_hybrid<-read.table("list_359_hybrid_pops.txt") #one column table wih pop info for each individual
+geneIndpop <- vcfR2genind(geno359GEA.VCF, pop=pop_hybrid)#transfrom file in genind object
+
+x.olive <- tab(geneIndpop, freq=TRUE, NA.method="mean")
+pca.olive <- dudi.pca(x.olive, center=TRUE, scale=FALSE)
+popfac<-as.factor(pop_hybrid$V1)
+s.class(pca.olive$li, fac=popfac,col=c("darkgreen", "purple", "grey"))
+jpeg(file = "/lustre/rocchettil/PCA_359_GEA.jpeg")
+s.class(pca.olive$li, fac=popfac,col=c("purple", "darkgreen", "grey"))
+dev.off()
+
+eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
+head(eig.perc)
+
+hybrid_pop<- read.table("hybrid_index_359.txt", header = T)
+hybrid_pop$hybrid_classes<- "hybrid_classes"
+hybrid_pop$hybrid_classes[hybrid_pop$names%which%outliers$Loci] <- "FDR"
+
+```
+
+```
+genotype359<- read.table("geno_359_west_olive_MAF005__imputated.txt", header=TRUE)
+#partial redundancy analysis (RDA only with GEA QTL)
+geno_359_GEA<-genotype359[which((rdadapt_temp$p.values<thres_env)|(rdadapt_prec$p.values<thres_env))]
+write.table(geno_359_GEA, "geno_359_GEadaptive.txt") #save the new GEA genotype data
+
+#once the dataset was created I can enter the data table with read.table
+geno_359_GEA<- read.table("geno_359_GEadaptive.txt", header=TRUE)
+
+RDA_359GEA<-rda(geno_all_enrich ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
+summary(eigenvals(RDA_all_enriched, model = "constrained"))
+```
 
 
 # Local Genomic offset RDA based
