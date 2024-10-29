@@ -906,23 +906,16 @@ Filter the original dataset of 359 genotypes for only SNP detected by the previo
 ```
 
 geno359GEA.VCF <- read.vcfR("359_genotypes_GEA_filtered.vcf.recode.vcf")#import vcf file
-genotype <- geno359GEA.VCF@gt[,-1]
-vcf2geno <- function(vec) {
-  vec <- as.character(vec)
-  vec[vec=="0/0"] <- 0
-  vec[vec=="0/1"] <- 1
-  vec[vec=="1/1"] <- 2
-  vec[vec=="./."] <- NA
-  return(as.integer(vec))
-}
-  geno <- apply(genotype, 1, vcf2geno)
-
 gl.genoLAND <- vcfR2genind(geno359GEA.VCF)#transfrom file in genind object
-gl.genoLAND <- vcf2geno("359_genotypes_GEA_filtered.vcf.recode.vcf")#transfrom file in genind object
 geno<-read.table("359_genotypes_GEA_filtered.vcf.recode.geno")
 genotype<-as.data.frame(gl.genoLAND)
-genotype %>% select(ends_with(".0"))
-#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+genotype<-genotype %>% select(ends_with(".0"))
+for (i in 1:ncol(genotype))
+{
+  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
+}
+
+
 
 ```
 Enter the population informations. For simplicity I al going to use a popolation differentiations based on geographic origins: (Morocco, Spain, France, Corse)
@@ -948,6 +941,35 @@ hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_class
 hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_classes & (hybrid_pop$hybrid.index < 0.25 )& (hybrid_pop$heterozygosity > 0.84))] <- "BC1 wild"
 
 ```
+Development of the predict function of RDA
+
+```
+# extract GEA QTL from 359datafile
+geno359 <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(geno359)#transfrom file in genind object
+geno359<-as.data.frame(gl.genoLAND)
+geno359<-geno359 %>% select(ends_with(".0"))
+for (i in 1:ncol(geno359))
+{
+  geno359[which(is.na(geno359[,i])),i] <- median(geno359[-which(is.na(geno359[,i])),i], na.rm=TRUE)
+}
+geno_enrich<-geno359[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
+
+
+# New sites
+loci_scores_predict<-predict(RDA_all_enriched, type="sp", new=geno_enrich, scal=2)
+str(loci_scores_predict)
+fitted_values_predict <- predict(RDA_all_enriched, newdata=genotype, type="response")
+```
+I obtained the following table where each locus of the new genoptypes have been predicted. I need to figure out how to summarize this info for each individual given the locus score.
+
+|                                         |          RDA1  |        RDA2|
+|-------------------------------------------|---------------|-------------|
+|Oe9_LG01_filtered_vcf:Oe9_LG01_45747.0     |0.0142150543 |-0.0701663364|
+|Oe9_LG01_filtered_vcf:Oe9_LG01_119415.0    |0.0281208965 | 0.0387941219|
+|Oe9_LG01_filtered_vcf:Oe9_LG01_1053508.0  |-0.1239368872 |-0.1176402760|
+
+
 
 ```
 #standardize bioclim variable
