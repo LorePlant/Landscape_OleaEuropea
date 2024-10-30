@@ -945,21 +945,27 @@ Development of the predict function of RDA
 
 ```
 # extract GEA QTL from 359datafile
-geno359 <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(geno359)#transfrom file in genind object
-geno359<-as.data.frame(gl.genoLAND)
-geno359<-geno359 %>% select(ends_with(".0"))
-for (i in 1:ncol(geno359))
+geno62_dom <- read.vcfR("domesticated_61_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(geno62_dom)#transfrom file in genind object
+geno62_dom<-as.data.frame(gl.genoLAND)
+geno62_dom<-geno62_dom %>% select(ends_with(".0"))
+for (i in 1:ncol(geno62_dom))
 {
-  geno359[which(is.na(geno359[,i])),i] <- median(geno359[-which(is.na(geno359[,i])),i], na.rm=TRUE)
+  geno62_dom[which(is.na(geno62_dom[,i])),i] <- median(geno62_dom[-which(is.na(geno62_dom[,i])),i], na.rm=TRUE)
 }
-geno_enrich<-geno359[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
+geno62_dom<-geno62_dom[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 
+df2<-colnames(geno_all_enrich)
+geno62_dom %>% select(all_of(names(df2)))
 
 # New sites
-loci_scores_predict<-predict(RDA_all_enriched, type="sp", new=geno_enrich, scal=2)
+loci_scores_predict<-predict(RDA_all_enriched, type="sp", new=geno62_dom)
+
+var_env_proj_RDA[,names(RDA_all_enriched$CCA$biplot[,i])]
+
+colnames(geno62_dom) <- colnames(geno_all_enrich)
 str(loci_scores_predict)
-fitted_values_predict <- predict(RDA_all_enriched, newdata=genotype, type="response")
+fitted_values_predict <- predict(RDA_all_enriched, newdata=geno62_dom, type="wa")
 ```
 I obtained the following table where each locus of the new genoptypes have been predicted. I need to figure out how to summarize this info for each individual given the locus score.
 
