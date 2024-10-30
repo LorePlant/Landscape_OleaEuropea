@@ -953,19 +953,12 @@ for (i in 1:ncol(geno62_dom))
 {
   geno62_dom[which(is.na(geno62_dom[,i])),i] <- median(geno62_dom[-which(is.na(geno62_dom[,i])),i], na.rm=TRUE)
 }
-geno62_dom<-geno62_dom[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 
-df2<-colnames(geno_all_enrich)
-geno62_dom %>% select(all_of(names(df2)))
+geno62_dom_GEA <- geno62_dom[, colnames(geno62_dom) %in% colnames(geno_all_enrich)]
 
-# New sites
-loci_scores_predict<-predict(RDA_all_enriched, type="sp", new=geno62_dom)
+# Predict RDA scores for the domesticated genotypes
 
-var_env_proj_RDA[,names(RDA_all_enriched$CCA$biplot[,i])]
-
-colnames(geno62_dom) <- colnames(geno_all_enrich)
-str(loci_scores_predict)
-fitted_values_predict <- predict(RDA_all_enriched, newdata=geno62_dom, type="wa")
+  fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno62_dom_GEA, type="wa")
 ```
 I obtained the following table where each locus of the new genoptypes have been predicted. I need to figure out how to summarize this info for each individual given the locus score.
 
@@ -976,24 +969,30 @@ I obtained the following table where each locus of the new genoptypes have been 
 |Oe9_LG01_filtered_vcf:Oe9_LG01_1053508.0  |-0.1239368872 |-0.1176402760|
 
 
+I can now assembly the 202 (wild+admixed) RDA scores and the 61 (cultivated) RDAscores and plot the two groups in the same RDA biplot
 
 ```
-#standardize bioclim variable
-data359<- read.csv("dataset_359_olive.csv", header = TRUE)
-bio = data.frame (data359$bio2, data359$bio10, data359$bio11, data359$bio15, data359$bio18, data359$bio19)
-Env <- scale(bio, center=TRUE, scale=TRUE)
-Env <- as.data.frame(Env)
+TAB_gen202 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
+TAB_gen202$group <- "wild_admixed"
+TAB_gen62 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:2])
+TAB_gen62$group <- "cultivated"
+merged_data <- rbind(TAB_gen202, TAB_gen62)
 
-#combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data359$IDSample, data359$long, data359$lat, data359$group, data359$latitude_range,  Env)
-names(Variables)[1]<- paste("geno")
-names(Variables)[2]<- paste("long")
-names(Variables)[3]<- paste("lat")
-names(Variables)[4]<- paste("group")
-names(Variables)[5]<- paste("latitude_range")
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
 
-RDA_359GEA<-rda(genotype ~ data359.bio2 + data359.bio10 + data359.bio11 + data359.bio15	+ data359.bio18 + data359.bio19, Variables)
-summary(eigenvals(RDA_all_enriched, model = "constrained"))
+dd<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = merged_data, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("darkred", "darkorange")) +
+  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
+  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
+  guides(color=guide_legend(title="Group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+dd
+
 ```
 
 ```
