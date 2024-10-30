@@ -994,6 +994,26 @@ dd<-ggplot() +
 dd
 
 ```
+```
+merged_geno <- rbind(geno62_dom_GEA, geno_all_enrich)
+res.pca<-PCA(merged_geno, scale.unit = TRUE, ncp = 5, graph = TRUE)
+# Create a data frame for PCA results
+pca_data <- as.data.frame(ind$coord)
+pca_data$group <- "group"
+pca_data$group[rownames(pca_data)%in%TAB_gen202$geno] <- "wild_admixed"
+pca_data$group[rownames(pca_data)%in%TAB_gen62$geno] <- "cultivated"
+
+pp<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = pca_data, aes(x=Dim.1, y=Dim.2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("darkred", "darkorange")) +
+  xlab("PC1: 15%") + ylab("PC2: 3%") +
+  guides(color=guide_legend(title="Group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+pp
+```
 
 ```
 #plot genotypes
