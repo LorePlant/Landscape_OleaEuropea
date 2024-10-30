@@ -1,1 +1,109 @@
 
+#### loading genotypic file and filtering individuals and MAF
+setwd("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo")
+
+geno359.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(geno359.VCF)#transfrom file in genind object
+geno359<-as.data.frame(gl.genoLAND)
+geno359<-geno359%>% select(ends_with(".0"))
+for (i in 1:ncol(geno359))
+{
+  geno359[which(is.na(geno359[,i])),i] <- median(geno359[-which(is.na(geno359[,i])),i], na.rm=TRUE)
+}
+
+##### Filter Wild individual 
+wild_list<-read.table("Wild_list.txt", header = F)
+genoWild <-  geno359[rownames(geno359)%in% wild_list$V1, ]
+
+### Filter wild dataset for MAF 005
+freq_mean <- colMeans(genoWild)
+genoWild_MAF005 <- genoWild[,-which(freq_mean>=0.95 | freq_mean<=0.05)]
+
+write.table(genoWild_MAF005, "genoWild_MAF005_imputated.txt")
+
+### Calcolate PC to use as covariate
+library(FactoMineR)
+library(factoextra)
+
+res.pca<-PCA(genoWild_MAF005, scale.unit = TRUE, ncp = 5, graph = TRUE)
+# Create a data frame for PCA results
+ind <- get_pca_ind(res.pca)
+pca_data <- as.data.frame(ind$coord)
+eig.val <- get_eigenvalue(res.pca) #selected 5 PCs
+
+####### prepare RDA datasets
+
+#standardize bioclim variable
+data_wild<- read.csv("WILD_135.csv", header = TRUE)
+bio = data_wild[ ,11:24]
+Env <- scale(bio, center=TRUE, scale=TRUE)
+Env <- as.data.frame(Env)
+
+#combining geographic, Popstructure, environmental (scaled) variables
+Variables <- data.frame(data_wild$IDSample, data_wild$long, data_wild$lat, data_wild$group,data_wild$latitude_range, data_wild$PC1, data_wild$PC2, data_wild$PC3, data_wild$PC4, data_wild$PC5,  Env)
+names(Variables)[1]<- paste("geno")
+names(Variables)[2]<- paste("long")
+names(Variables)[3]<- paste("lat")
+names(Variables)[4]<- paste("group")
+names(Variables)[5]<- paste("latitude_range")
+names(Variables)[6]<- paste("PC1")
+names(Variables)[7]<- paste("PC2")
+names(Variables)[8]<- paste("PC3")
+names(Variables)[9]<- paste("PC4")
+names(Variables)[10]<- paste("PC5")
+
+RDAgeo_env <- rda(genoWild_MAF005 ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19, Variables)
+
+sqrt(vif.cca(RDAgeo_env))
+
+######## Here I can plot the wild genotypes in RDA space and see potential differences among latitude ranges
+
+
+#### run RDA for GEA identification
+
+#Temperature
+RDA_temp <- rda(genoWild_MAF005 ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + PC4 + PC5 + lat + long), Variables)
+summary(eigenvals(RDA_temp, model = "constrained"))
+library(robust)
+rdadapt<-function(rda,K)
+{
+  zscores<-rda$CCA$v[,1:as.numeric(K)]
+  resscale <- apply(zscores, 2, scale)
+  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
+  lambda <- median(resmaha)/qchisq(0.5,df=K)
+  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
+  qval <- qvalue(reschi2test)
+  q.values_rdadapt<-qval$qvalues
+  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
+}
+
+rdadapt_temp<- rdadapt(RDA_temp, 2)
+## P-values threshold after Bonferroni correction
+thres_env <- 0.05/length(rdadapt_temp$p.values)
+## Identifying the loci that are below the p-value threshold
+top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genoWild_MAF005)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
+qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
+outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
+
+## Precipitation
+RDA_prec <- rda(genoWild_MAF005 ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + PC3 + PC4 + PC5 + lat + long), Variables)
+summary(eigenvals(RDA_prec, model = "constrained"))
+thres_env <- 0.05/length(rdadapt_temp$p.values)
+## Identifying the loci that are below the p-value threshold
+top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], split = "_"), function(x) x[1])))
+#write.table(top_outliers, "Bonferroni_temp")
+qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_prec$p.values, q.value = rdadapt_prec$q.value)
+outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$q.values<0.05)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$q.values<0.05)])
+
+
+
+
+
+
+#### Add group and hybrid class (interclass heterozigosity) to the genotype datafile
+
+pca_data$group <- "group"
+pca_data$group[rownames(pca_data)%in%TAB_gen202$geno] <- "wild_admixed"
+pca_data$group[rownames(pca_data)%in%TAB_gen62$geno] <- "cultivated"
+
+genoWild <- geno62_dom[, colnames(geno62_dom) %in% colnames(geno_all_enrich)]
