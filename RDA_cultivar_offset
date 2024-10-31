@@ -32,9 +32,6 @@ ind <- get_pca_ind(res.pca)
 pca_data <- as.data.frame(ind$coord)
 eig.val <- get_eigenvalue(res.pca) #selected 5 PCs
 
-####   Calcolate latent factor to use as covariate
-
-
 
 ####### prepare RDA datasets
 
@@ -64,10 +61,24 @@ sqrt(vif.cca(RDAgeo_env))
 ######## Here I can plot the wild genotypes in RDA space and see potential differences among latitude ranges
 
 
-#### run RDA for GEA identification
+######### run RDA for GEA identification
+## Use latent factor for covariable correction
+# latent factor temperature variable
+Y <- genoWild_MAF005
+sel_temp<- data.frame(Env%>% select(bio2, bio10, bio11))
+write.env(sel_temp, "Temp_variable.env")
+X = read.table("Temp_variable.env")
 
-#Temperature
-RDA_temp <- rda(genoWild_MAF005 ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + PC4 + PC5 + lat + long), Variables)
+mod.lfmm2 <- lfmm2(input = Y, env = X, K = 4)
+str(mod.lfmm2)
+mod.lfmm2@U
+#Merge latent factor to Variable
+latent_temp<-data.frame(rownames(genoWild_MAF005), mod.lfmm2@U)
+Temp_Var<-cbind(Variables,latent_temp)
+
+
+#GEA Temperature
+RDA_temp <- rda(genoWild_MAF005 ~ bio2+bio10+bio11 +  Condition(X1 + X2 +X3 +X4 + lat + long), Temp_Var)
 summary(eigenvals(RDA_temp, model = "constrained"))
 library(robust)
 rdadapt<-function(rda,K)
@@ -90,17 +101,49 @@ top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$p
 qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
 outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
 
-## Precipitation
-RDA_prec <- rda(genoWild_MAF005 ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + PC3 + PC4 + PC5 + lat + long), Variables)
+#latent factor precipitation variable
+
+Y <- genoWild_MAF005
+sel_prec<- data.frame(Env%>% select(bio15, bio18, bio19))
+write.env(sel_prec, "prec_variable.env")
+X = read.table("prec_variable.env")
+mod.lfmm2 <- lfmm2(input = Y, env = X, K = 4)
+str(mod.lfmm2)
+mod.lfmm2@U
+#Merge latent factor to Variable
+latent_prec<-data.frame(rownames(genoWild_MAF005), mod.lfmm2@U)
+Prec_Var<-cbind(Variables,latent_prec)
+
+
+
+## GEA Precipitation
+RDA_prec <- rda(genoWild_MAF005 ~ 	bio15	+ bio18 + bio19 +  Condition(X1 + X2 + X3 + X4 + lat + long), Prec_Var)
 summary(eigenvals(RDA_prec, model = "constrained"))
-thres_env <- 0.05/length(rdadapt_temp$p.values)
+
+rdadapt_prec<- rdadapt(RDA_prec, 2)
+## P-values threshold after Bonferroni correction
+thres_env <- 0.05/length(rdadapt_prec$p.values)
 ## Identifying the loci that are below the p-value threshold
 top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], split = "_"), function(x) x[1])))
-#write.table(top_outliers, "Bonferroni_temp")
+
 qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_prec$p.values, q.value = rdadapt_prec$q.value)
 outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$q.values<0.05)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$q.values<0.05)])
 
 
+######RDA only with GEA QTL
+geno_Wild_GEA<-genoWild_MAF005[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
+write.table(geno_Wild_GEA, "geno_Wild_GEA.txt") #save the new GEA genotype data
+
+### Estimation of cultivar Offset
+
+#filter cultivar individuals
+cul_list<-read.table("P2_individual_list.txt", header = F)
+genoCul <-  geno359[rownames(geno359)%in% cul_list$V1, ]
+geno_Cul_GEA <- genoCul[, colnames(genoCul) %in% colnames(geno_Wild_GEA)]
+
+# Predict RDA scores for the domesticated genotypes
+
+  fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno62_dom_GEA, type="wa")
 
 
 
