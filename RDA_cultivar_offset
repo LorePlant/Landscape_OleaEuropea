@@ -20,6 +20,7 @@ freq_mean <- colMeans(genoWild)
 genoWild_MAF005 <- genoWild[,-which(freq_mean>=0.95 | freq_mean<=0.05)]
 
 write.table(genoWild_MAF005, "genoWild_MAF005_imputated.txt")
+genoWild_MAF005<- read.table("genoWild_MAF005_imputated.txt", header = T)
 
 ### Calcolate PC to use as covariate
 library(FactoMineR)
@@ -30,6 +31,10 @@ res.pca<-PCA(genoWild_MAF005, scale.unit = TRUE, ncp = 5, graph = TRUE)
 ind <- get_pca_ind(res.pca)
 pca_data <- as.data.frame(ind$coord)
 eig.val <- get_eigenvalue(res.pca) #selected 5 PCs
+
+####   Calcolate latent factor to use as covariate
+
+
 
 ####### prepare RDA datasets
 
