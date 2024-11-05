@@ -253,8 +253,23 @@ pred <- predict(RDA_all_enriched, var_env_proj_RDA[,names(RDA_all_enriched$CCA$b
 Tab_pixel <- data.frame(x = var_env_proj_pres[,1], y = var_env_proj_pres[,2], pred) 
 plot(Tab_pixel$RDA1, Tab_pixel$RDA2)
 
+Tab_pixel$RDA1_class <- "group"
+Tab_pixel$RDA1_class[Tab_pixel$RDA1 <= -2.23] <- "group1" 
+Tab_pixel$RDA1_class[Tab_pixel$RDA1 >= -2.23 & Tab_pixel$RDA1 <= -1.4] <- "group2"
+Tab_pixel$RDA1_class[Tab_pixel$RDA1 >= -1.4 & Tab_pixel$RDA1 <= -0.8] <- "group3"
+Tab_pixel$RDA1_class[Tab_pixel$RDA1 >= -0.8 & Tab_pixel$RDA1 <= -0.0159] <- "group4"
+Tab_pixel$RDA1_class[Tab_pixel$RDA1 > -0.0159] <- "group5" 
 
 
+
+
+ggplot(Tab_pixel, aes(x = RDA1, y = RDA2, color = RDA1_class)) +
+  geom_point() +
+  scale_color_manual(values = c('group1' = '#56B4E9', 'group2' = "green", 'group3' = "yellow", 'group4' = '#E69F00', 'group5' = 'darkred'))
+
+
+  geom_hline(yintercept = 25, linetype = "dashed") + 
+  geom_hline(yintercept = 50, linetype = "dashed")
 
 
 
