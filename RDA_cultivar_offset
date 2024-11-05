@@ -163,6 +163,82 @@ plot(loading_geno_all_enriched_region)
 dev.off()
 
 
+#adaptive index function
+
+adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", scale_env, center_env){
+  
+  # Formatting environmental rasters for projection
+  var_env_proj_pres <- as.data.frame(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]]))
+  
+  # Standardization of the environmental variables
+  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+  
+  # Predicting pixels genetic component based on RDA axes
+  Proj_pres <- list()
+  if(method == "loadings"){
+    for(i in 1:K){
+      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(apply(var_env_proj_RDA[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))), crs = crs(env_pres))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Prediction with RDA model and linear combinations
+  if(method == "predict"){ 
+    pred <- predict(RDA, var_env_proj_RDA[,names(RDA$CCA$biplot[,i])], type = "lc")
+    for(i in 1:K){
+      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred[,i])), crs = crs(env_pres))
+      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
+      Proj_pres[[i]] <- ras_pres
+      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
+    }
+  }
+  
+  # Returning projections for current climates for each RDA axis
+  return(Proj_pres = Proj_pres)
+}
+Recovering scaling coefficients Create a table of scaled temperature variable
+
+
+library('dplyr')
+
+vars = Variables %>% select('bio2','bio10', 'bio11', 'bio15', 'bio18', 'bio19')
+Var_scale <- scale(vars, center=TRUE, scale=TRUE)
+scale_var <- attr(Var_scale, 'scaled:scale')
+center_var <- attr(Var_scale, 'scaled:center')
+
+Enter the raster file for the specific bioclimatic variable for current climatic situation
+
+# ras temperature
+library(raster)
+library("readxl")
+
+
+bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio2_current_masked.tif"))
+bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio10_current_masked.tif"))
+bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio11_current_masked.tif"))
+bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio15_current_masked.tif"))
+bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio18_current_masked.tif"))
+bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio19_current_masked.tif"))
+names(bio2) = 'bio2'
+names(bio10) = 'bio10'
+names(bio11) = 'bio11'
+names(bio15) = 'bio15'
+names(bio18) = 'bio18'
+names(bio19) = 'bio19'
+#stack the different raster file
+ras_current_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
+Predict tha adaptive index for each pixel grid
+
+## Function to predict the adaptive index across the landscape
+source("./src/adaptive_index.R")
+
+res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
+projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
+plot(projection)
+writeRaster(projection,'Wild_adaptive_landscape.tif',options=c('TFW=YES'))#save raster for QGIS
+
 
 
 
