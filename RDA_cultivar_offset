@@ -134,6 +134,36 @@ outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$q.val
 geno_Wild_GEA<-genoWild_MAF005[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 write.table(geno_Wild_GEA, "geno_Wild_GEA.txt") #save the new GEA genotype data
 
+#### Adaptive landscape 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Estimation of cultivar Offset
 
 #filter cultivar individuals
