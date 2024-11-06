@@ -11,7 +11,7 @@ library(vcfR)
 library(adegenet)
 
 setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+genoLAND.VCF <- read.vcfR("359_Olive_west.vcf.recode.vcf")#import vcf file
 gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
 genotype<-as.data.frame(gl.genoLAND)
 genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
@@ -168,13 +168,13 @@ popmap<-read.table("popmap.txt")
 
 # Create a new vcfR object composed only of sites above the given allele frequency difference threshold
 vcfR.diff <- alleleFreqDiff(vcfR = genoLAND.VCF, pm = popmap, p1 = " P1", p2 = "P2", difference = 0.7)
-#"3042 sites passed allele frequency difference threshold"
+#"3175 sites passed allele frequency difference threshold"
 
 # Calculate hybrid index and heterozygosity for each sample. Values are returned in a data.frame
 hi.het <- hybridIndex(vcfR = vcfR.diff, pm = popmap, p1 = "P1", p2 = "P2")
 
 # Generate colors (or leave blank to use default)
-cols <- c("#af8dc3", "#7fbf7b", "#bababa", "#878787", "#762a83", "#1b7837")
+cols <- c("darkgrey", "purple", "darkgreen")
 # View triangle plot
 jpeg(file = "/lustre/rocchettil/triangular_plot.jpeg")
 triangle.plot(hi.het, colors = cols)
