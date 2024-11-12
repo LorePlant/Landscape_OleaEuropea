@@ -1,5 +1,5 @@
 
-## Landscape Olea europea
+# Landscape Olea europea
 
 This page is created to track progresses on my postdoctoral research in landscape genomics in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
@@ -20,9 +20,9 @@ for (i in 1:ncol(geno359))
   geno359[which(is.na(geno359[,i])),i] <- median(geno359[-which(is.na(geno359[,i])),i], na.rm=TRUE)
 }
 ```
-# Diversity analysis and evaluation of introgression
+## Diversity analysis and evaluation of introgression
 
-From the work of Lison 2024 135 truly wild genotypes were selected with ancestry _q>0.70_. The rest of 224 genotype were classified as admixed. To distinguish between historical vs recent introgression, we analyzed the hybrid index using ancestry-informative SNPs. To define the two parental hybrid sources, we conducted a PCA. 61 genotypes with the ,ost extreame postion along the PC1 from the truly wild were classified as cultivated.  
+From the work of Lison 2024 135 truly wild genotypes were selected with ancestry _q>0.70_. The rest of 224 genotype were classified as admixed. To distinguish between historical vs recent introgression, we analyzed the hybrid index using ancestry-informative SNPs. To define the two parental hybrid sources, we conducted a PCA. 61 genotypes with the most extreame postion along the PC1 from the truly wild were classified as cultivated. These individulas most likely represent cultivated seeds that migrated in the wild environment from the near agricultural field. 
 
 >PCA on the whole dataset
 
@@ -58,11 +58,15 @@ The significant admixture present in our collection between wild and cultivated 
 
 To investigate the presence of F1 hybrids I identified a recent devoped Rpackage that allow to identified ancestry-informative markers and estimate their hybrids index with the relative presence of F1, BC1, BC2 or past introgression.  https://omys-omics.github.io/triangulaR/index.html
 
+In this analysis I used the vcf file that was not filtered for MAF 5%.
+
 
 ```
 library(triangulaR)
 # make a pop map
 popmap<-read.table("popmap.txt")
+
+genoLAND.VCF <- read.vcfR("359_Olive_west.vcf.recode.vcf")#import vcf file
 
 # Create a new vcfR object composed only of sites above the given allele frequency difference threshold
 vcfR.diff <- alleleFreqDiff(vcfR = genoLAND.VCF, pm = popmap, p1 = " P1", p2 = "P2", difference = 0.7)
@@ -78,82 +82,32 @@ jpeg(file = "/lustre/rocchettil/triangular_plot.jpeg")
 triangle.plot(hi.het, colors = cols)
 dev.off()
 ```
-![triangular_plot](https://github.com/user-attachments/assets/a65ae610-7812-4c6f-9181-244587150fe2)
+![image](https://github.com/user-attachments/assets/ab6673f7-6bab-4c90-bf3a-fe592ddf2c52)
+
 
 In the following figure we can see the  theoretical expectations for combinations of hybrid index and interclass heterozygosity under Hardy-Weinberg Equilibrium (HWE). In Larson et al 2013 F1 1 hybrids (hybrid index = 0.5, interspecificheterozygosity ≥ 85%), multi-generation hybrids (hybridindex 0.25–0.75, interspecific heterozygosity < 85%). 
-Following this I used a more stringent selection selecting individuals with ****_interclass heterozygosity_**  < 0.7** and ****_hybrid index_** <  **0.5**** selecting individuals with at least one generation of segregation and selection, obtaining a total of 202 genotypes 62 admixed and 140 Wild.
-From the results, we can confidently infer that the P2 individuals, those with a high level of ancestry from cultivated germplasm, likely originated from cultivated seeds dispersed by birds, rather than from wild seeds where selection would have had the opportunity to promote a cultivated background after introgression. We can affirm this conclusion due to the high percentage of recent hybridization, which suggests that the introgression is relatively recent in terms of generational time. If historical introgression had occurred, we would expect to see all individuals clustered at the base of the triangle with low levels of interclass heterozygosity.
+The results highlight the large presence of rencet hybrids like F1 and BC1. From this results we confidentially used the 135 wild previously identified by Lison for the Genotype Environment Association GEA analysis.
+
 
 ![image](https://github.com/user-attachments/assets/82d441d1-70e4-432c-a08a-c5dd92ea617d)
 
 
-# Principal component analysis
-Principal Component Analysis (PCA) is the amongst the most common multivariate analyses
-used in genetics.
-Let's first upload the new genotypic datafile of 202 individuals and applying the MAF 0.05.
+
+>filtering wild individual and filtering sites for MAF 0.05
 
 ```
-setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
-genotype<-as.data.frame(gl.genoLAND)
-#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+##### Filter Wild individual 
+wild_list<-read.table("Wild_list.txt", header = F)
+genoWild <-  geno359[rownames(geno359)%in% wild_list$V1, ]
 
+### Filter wild dataset for MAF 005
+freq_mean <- colMeans(genoWild)
+genoWild_MAF005 <- genoWild[,-which(freq_mean>=0.95 | freq_mean<=0.05)]
+
+write.table(genoWild_MAF005, "genoWild_MAF005_imputated.txt")
+genoWild_MAF005<- read.table("genoWild_MAF005_imputated.txt", header = T)
 ```
-Enter the population informations. For simplicity I al going to use a popolation differentiations based on geographic origins: (Morocco, Spain, France, Corse)
-```
-pop_region<-read.table("pops_geo_regions.txt") #one column table wih pop info for each individual
-geneIndpop <- vcfR2genind(genoLAND.VCF, pop=pop_region)#transfrom file in genind object
 
-x.olive <- tab(geneIndpop, freq=TRUE, NA.method="mean")
-pca.olive <- dudi.pca(x.olive, center=TRUE, scale=FALSE)
-popfac<-as.factor(pop_region$V1)
-s.class(pca.olive$li, fac=popfac,col=c("darkorange", "darkgreen", "blue", "red"))
-jpeg(file = "/lustre/rocchettil/PCA_202.jpeg")
-s.class(pca.olive$li, fac=popfac,col=c("darkorange", "darkgreen", "blue", "red"))
-dev.off()
-
-eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
-head(eig.perc)
-```
-We can compare the result of PCA 202 with the PCA 359 to see if by remouving the F& hybrids and largely cultivated material we can better explain structure of the Wild
-```
-genoLAND359.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
-pop_region_359<-read.table("pops_regions_359.txt") #one column table wih pop info for each individual
-geneIndpop359 <- vcfR2genind(genoLAND359.VCF, pop=pop_region_359)#transfrom file in genind object
-
-x.olive_359 <- tab(geneIndpop359, freq=TRUE, NA.method="mean")
-pca.olive359 <- dudi.pca(x.olive_359, center=TRUE, scale=FALSE)
-popfac359<-as.factor(pop_region_359$V1)
-s.class(pca.olive359$li, fac=popfac359,col=c("darkorange", "darkgreen", "blue", "red"))
-jpeg(file = "/lustre/rocchettil/PCA_359.jpeg")
-s.class(pca.olive359$li, fac=popfac359,col=c("darkorange", "darkgreen", "blue", "red"))
-dev.off()
-
-eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
-head(eig.perc)
-```
-The result show that by remouving the F1 hybrids and genotypes with high membership from cultivated material we can asses in a better way the populations group among the wild germplasm. In details, in the PCA202 we can appreciate the group differentiation between wild of the south (Morocco) and wild of the north (Corse)
-
-
-![PCA_359](https://github.com/user-attachments/assets/ca186106-4d65-43e0-bcf4-f59a1b3203f8)
->PCA from the whole population of 359 individuals
-
-![PCA_202](https://github.com/user-attachments/assets/048cd8fa-5cd8-431a-b982-1076a52f124b)
->PCA from the filtered population of 202 individuals
-
-Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
-
-
-```
-for (i in 1:ncol(genotype))
-{
-  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
-}
-
-write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
-genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
-```
 
 # Redundancy analysis
 
