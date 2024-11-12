@@ -168,7 +168,7 @@ sqrt(vif.cca(RDAgeo_env))
 
 |  bio2    |   bio10   |   bio11  |  bio15  |   bio18  |   bio19  | 
 |---------|----------|---------|----------|-----------|----------|
-1.939547| 1.368211 |2.865102 |3.484063 |1.964664| 1.438614|
+2.314209| 1.491136 |3.308390 |3.656316 |2.216436| 1.632229|
 
 
 The variable selected showed low inflation factor due to correlation
@@ -304,31 +304,35 @@ hist(qvalue$p.value)
 
 > Precipitation
 ```
-RDA_prec <- rda(genotype ~ 	bio15	+ bio18 + bio19 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables)
+#latent factor precipitation variable
+
+Y <- genoWild_MAF005
+sel_prec<- data.frame(Env%>% select(bio15, bio18, bio19))
+write.env(sel_prec, "prec_variable.env")
+X = read.table("prec_variable.env")
+mod.lfmm2 <- lfmm2(input = Y, env = X, K = 4)
+str(mod.lfmm2)
+mod.lfmm2@U
+#Merge latent factor to Variable
+latent_prec<-data.frame(rownames(genoWild_MAF005), mod.lfmm2@U)
+Prec_Var<-cbind(Variables,latent_prec)
+
+
+
+## GEA Precipitation
+RDA_prec <- rda(genoWild_MAF005 ~ 	bio15	+ bio18 + bio19 +  Condition(X1 + X2 + X3 + X4 + lat + long), Prec_Var)
 summary(eigenvals(RDA_prec, model = "constrained"))
-library(robust)
-remotes::install_github("koohyun-kwon/rdadapt")
-source("./src/rdadapt.R")
-rdadapt<-function(rda,K)
-{
-  zscores<-rda$CCA$v[,1:as.numeric(K)]
-  resscale <- apply(zscores, 2, scale)
-  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
-  lambda <- median(resmaha)/qchisq(0.5,df=K)
-  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
-  qval <- qvalue(reschi2test)
-  q.values_rdadapt<-qval$qvalues
-  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
-}
 
 rdadapt_prec<- rdadapt(RDA_prec, 2)
 ## P-values threshold after Bonferroni correction
 thres_env <- 0.05/length(rdadapt_prec$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_prec$p.values<thres_env)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_prec$p.values<thres_env)], split = "_"), function(x) x[1])))
-write.table(top_outliers, "Bonferroni_prec")
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_prec$p.values, q.value = rdadapt_prec$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_prec$q.values<0.05)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$q.values<0.05)])
+top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genoWild_MAF005)[which(rdadapt_prec$p.values<thres_env)], split = "_"), function(x) x[1])))
+
+qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_prec$p.values, q.value = rdadapt_prec$q.value)
+outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_prec$q.values<0.05)], p.value = rdadapt_prec$p.values[which(rdadapt_prec$q.values<0.05)])
+
+#plot GEA precipitation
 
 locus_scores <- scores(RDA_prec, choices=c(1:2), display="species", scaling="none")
 TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
@@ -340,11 +344,11 @@ TAB_var <- as.data.frame(scores(RDA_prec, choices=c(1,2), display="bp"))
 loading_prec<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
+  geom_point(data = TAB_loci, aes(x=RDA1*20, y=RDA2*20, colour = type), size = 2.5) +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
   geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 36%") + ylab("RDA 2: 34%") +
+  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.8, family = "Times") +
+  xlab("RDA 1: 40%") + ylab("RDA 2: 34%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -354,14 +358,17 @@ plot(loading_prec)
 dev.off()
 
 
-write.table(qvalue, "Prec_GEA_Olive")
+write.table(qvalue, "Prec_GEA_Olive.csv", append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
 
 #plotting Mhanattan plot using the library qqman
 
 library(qqman)
-Manhattan_prec <- read.csv(file = "precGEA.csv", header=TRUE) #import the p value result for precipitation
+Manhattan_prec <- read.csv(file = "Prec_GEA_Olive.csv", header=TRUE) #import the p value result for precipitation
 jpeg(file = "/lustre/rocchettil/Manh_RDA_prec.jpeg")
-manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.0003300502), genomewideline = -log10(8.90948e-07))
+manhattan(Manhattan_prec, col = c("blue", "gray60"),suggestiveline = -log10(0.00030798), genomewideline = -log10(3.907776e-06))
 dev.off()
 
 #P distribution
@@ -370,66 +377,9 @@ hist(Manhattan_prec$P)
 dev.off()
 
 ```
+![image](https://github.com/user-attachments/assets/43607b9e-2d80-47d3-b637-bcbf89990e7a)
+![image](https://github.com/user-attachments/assets/84320d9d-2814-437a-867c-b976c14b273e)
 
-
-
->All together
-
-Not Updated!!!!!!
-
-In this attempt I am going to run the GEA analysis considering all the bioclimatic variable selected. The derived GEA will be used for the adaptive index projection and Genomic offset estimation
-
-```
-RDA_all <- rda(genotype ~ 	bio2 + bio10 + bio11 + bio15	+ bio18 + bio19 +  Condition(PC1 + lat + long), Variables)
-summary(eigenvals(RDA_all, model = "constrained"))
-library(robust)
-remotes::install_github("koohyun-kwon/rdadapt")
-source("./src/rdadapt.R")
-rdadapt<-function(rda,K)
-{
-  zscores<-rda$CCA$v[,1:as.numeric(K)]
-  resscale <- apply(zscores, 2, scale)
-  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
-  lambda <- median(resmaha)/qchisq(0.5,df=K)
-  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
-  qval <- qvalue(reschi2test)
-  q.values_rdadapt<-qval$qvalues
-  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
-}
-
-rdadapt_env<- rdadapt(RDA_all, 2)
-## P-values threshold after Bonferroni correction
-thres_env <- 0.05/length(rdadapt_env$p.values)
-## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$p.values<thres_env)], p.value = rdadapt_env$p.values[which(rdadapt_env$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype) [which(rdadapt_env$p.values<thres_env)], split = "_"), function(x) x[1])))
-
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_env$p.values, q.value = rdadapt_env$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_env$q.values<0.05)], p.value = rdadapt_env$p.values[which(rdadapt_env$q.values<0.05)])
-
-locus_scores <- scores(RDA_all, choices=c(1:2), display="species", scaling="none")
-TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
-TAB_loci$type <- "Not associated"
-TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
-TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
-TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
-TAB_var <- as.data.frame(scores(RDA_all, choices=c(1,2), display="bp"))
-loading_all<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
-  scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 44%") + ylab("RDA 2: 32%") +
-  guides(color=guide_legend(title="Locus type")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-loading_all
-jpeg(file = "/lustre/rocchettil/RDA_all_biplot.jpeg")
-plot(loading_all)
-dev.off()
-```
-![RDA_all_biplot](https://github.com/user-attachments/assets/8f76c89e-6453-477a-9273-b3ca15eaf00e)
 
 
 ## Enriched RDA
