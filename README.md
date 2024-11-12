@@ -573,6 +573,9 @@ hh<-ggplot() +
 hh
 ```
 
+![image](https://github.com/user-attachments/assets/f2ce3e4a-14df-4f5e-9f23-779ba46cd8e5)
+
+
 Calculate the euclidean distance between cultivated and best cultivated
 
 ```
