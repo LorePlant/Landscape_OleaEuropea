@@ -109,55 +109,38 @@ genoWild_MAF005<- read.table("genoWild_MAF005_imputated.txt", header = T)
 ```
 
 
-# Redundancy analysis
+## Redundancy analysis
 
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allows to dissect the the total genetic variance among the environment, geographic and demographic components. 
 In this first analysis I used RDA on the following linear model to see if we can detect specif environmental variables diverging Wild vs Admixed genotypes or geographic regions.
  $` Gen \sim Environment `$
 
-let's first upload the new genotypic datafile of 202 individuals and applying the MAF 0.05.
-
-```
-setwd("/lustre/rocchettil")
-setwd('/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo')
-genoLAND.VCF <- read.vcfR("202_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
-genotype<-as.data.frame(gl.genoLAND)
-genotype<-genotype %>% select(ends_with(".0"))
-#genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
-
-```
-Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
-
-```
-for (i in 1:ncol(genotype))
-{
-  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
-}
-
-write.table(genotype, "geno_202_west_olive_MAF005__imputated.txt")
-genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
-```
-The following chuck of code illustrates the step undertaken for assembly the dataset for RDA. The main step is the standardization of environmental variables
+>Data file preparation
 ```
 #standardize bioclim variable
-data202<- read.csv("dataset_202_west.csv", header = TRUE)
-bio = data202[ ,17:30]
+data_wild<- read.csv("WILD_135.csv", header = TRUE)
+bio = data_wild[ ,11:24]
 Env <- scale(bio, center=TRUE, scale=TRUE)
 Env <- as.data.frame(Env)
 
 #combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data202$IDSample, data202$long, data202$lat, data202$group,data202$latitude_range, data202$region, data202$PC1, data202$PC2, data202$PC3,  Env)
+Variables <- data.frame(data_wild$IDSample, data_wild$long, data_wild$lat, data_wild$group,data_wild$latitude_range, data_wild$PC1, data_wild$PC2, data_wild$PC3, data_wild$PC4, data_wild$PC5,  Env)
 names(Variables)[1]<- paste("geno")
 names(Variables)[2]<- paste("long")
 names(Variables)[3]<- paste("lat")
 names(Variables)[4]<- paste("group")
 names(Variables)[5]<- paste("latitude_range")
-names(Variables)[6]<- paste("region")
-names(Variables)[7]<- paste("PC1")
-names(Variables)[8]<- paste("PC2")
-names(Variables)[9]<- paste("PC3")
+names(Variables)[6]<- paste("PC1")
+names(Variables)[7]<- paste("PC2")
+names(Variables)[8]<- paste("PC3")
+names(Variables)[9]<- paste("PC4")
+names(Variables)[10]<- paste("PC5")
+
+RDAgeo_env <- rda(genoWild_MAF005 ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19, Variables)
+
+sqrt(vif.cca(RDAgeo_env))
  ```
+
 To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
 ```
@@ -191,92 +174,6 @@ sqrt(vif.cca(RDAgeo_env))
 The variable selected showed low inflation factor due to correlation
 
 
-In the next part I'm preparing the data for plotting the RDA biplot, where genotypes will be presented by dots and loadings will be the environmental variable
-```
-#write.table(score, "Genotypevalue_RDAgeo_env")
-summary(eigenvals(RDAgeo_env, model = "constrained"))
-#data_RDAgeo_env <- read.table(file = "clipboard", sep = "\t", header=TRUE)
-score<-scores(RDAgeo_env , display = "sites")
-TAB_gen <- data.frame(geno = row.names(score), score)
-dataRDA<-merge(Variables, TAB_gen, by = "geno")
-#install.packages("ggrepel")
-#library(ggrepel)
-TAB_var <- as.data.frame(scores(RDAgeo_env, choices=c(1,2), display="bp"))
-```
-I would like to prepare three plot highlighting WLDvsADM, latitude ranges and geographic regions
-
-> Wild vs Admixed
-```
-##color ADM vs WLD
-loading_RDAgeo_env<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=group), size = 4.5) +
-  scale_color_manual(values = c("blue", "darkorange")) + 
-  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 46 %") + ylab("RDA 2: 17 %") +
-  guides(color=guide_legend(title="Genetic group")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
-jpeg(file = "/lustre/rocchettil/RDA_env.jpeg")
-plot(loading_RDAgeo_env)
-dev.off()
-```
-![RDA_env](https://github.com/user-attachments/assets/5e602783-0122-4339-833c-00e45be20fd0)
-
-
-
->Latitude ranges
-```
-#color latitude range
-loading_RDAgeo_env<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=latitude_range), size = 4.5) +
-  scale_color_manual(values = c("darkgreen","red", "darkorange")) + 
-  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 46%") + ylab("RDA 2: 17 %") +
-  guides(color=guide_legend(title="latitude range")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
-jpeg(file = "/lustre/rocchettil/RDA_geo_env_lat_range.jpeg")
-plot(loading_RDAgeo_env)
-dev.off()
-```
-
-![RDA_geo_env_lat_range](https://github.com/user-attachments/assets/d040ec52-5a43-4cf6-801c-5a8294f92dc8)
-
-
-
->Geographic regions: France, Corse, Spain, Morocco
-
-```
-#color regions
-loading_RDAgeo_env<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
-  geom_point(data = dataRDA, aes(x=RDA1, y=RDA2, color=region), size = 4.5) +
-  scale_color_manual(values = c("darkgreen","purple", "darkorange", "blue")) + 
-  geom_segment(data = TAB_var, aes(xend=RDA1*10, yend=RDA2*10, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=RDA1*10, y=RDA2*11, label = row.names(TAB_var)), size = 4.5, family = "Times") +
-  xlab("RDA 1: 46%") + ylab("RDA 2: 17 %") +
-  guides(color=guide_legend(title="latitude range")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(1)), strip.text = element_text(size=13),axis.text.x = element_text(size = 13), axis.text.y = element_text(size = 13))
-jpeg(file = "/lustre/rocchettil/RDA_geo_env_region.jpeg")
-plot(loading_RDAgeo_env)
-dev.off()
-```
-
-![RDA_geo_env_region](https://github.com/user-attachments/assets/cf1b91aa-11d0-4055-821d-f84b20e400c1)
-
-
-
-
-The result show a clear differentiation between Wild and Admixed populations. The two groups are mainly divided along the RDA1 component which is positively correlated with temperature variable bio10 and bio11 and precipitation seasonality bio15. Among the wild group the group of Corse is distinguished by the southern Wild for winter precipitation bio19.
-The result suggest that the wild populations can trive in warmer winters, and drier summers, compared to the admixed group. I would speculate from this outcome that the introgression of cultivated genepool can decrease the potential adaptation in future environmental scenarios were temperature levels are forecast to increase.
 
 ## RDA for variance partitioning
 
@@ -309,17 +206,32 @@ RsquareAdj(pRDAgeog)
 
 ## RDA for Genotype Environment Associations (GEA)
 
-Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure (PC1 + PC2 + PC3) and geography (latitude and longitude) using them as covariates in the RDA model
+Redundancy analysis can be used to identify GEA based on the Mhallanoise distance of SNPs in the RDA-biplot. Within the RDA model we can effectively correct for population structure  and geography (latitude and longitude) using them as covariates in the RDA model. As population structure correction we used latent factor derived from the LEA package.
+
 As first attempt I decided to run the anlysis seperate for temperature and precipitation variables.
 
 >Temperature
 
 ```
-RDA_temp <- rda(genotype ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables)
+## Use latent factor for covariable correction
+# latent factor temperature variable
+Y <- genoWild_MAF005
+sel_temp<- data.frame(Env%>% dplyr::select(bio2, bio10, bio11))
+write.env(sel_temp, "Temp_variable.env")
+X = read.table("Temp_variable.env")
+
+mod.lfmm2 <- lfmm2(input = Y, env = X, K = 4)
+str(mod.lfmm2)
+mod.lfmm2@U
+#Merge latent factor to Variable
+latent_temp<-data.frame(rownames(genoWild_MAF005), mod.lfmm2@U)
+Temp_Var<-cbind(Variables,latent_temp)
+
+
+#GEA Temperature
+RDA_temp <- rda(genoWild_MAF005 ~ bio2+bio10+bio11 +  Condition(X1 + X2 +X3 +X4 + lat + long), Temp_Var)
 summary(eigenvals(RDA_temp, model = "constrained"))
 library(robust)
-remotes::install_github("koohyun-kwon/rdadapt")
-source("./src/rdadapt.R")
 rdadapt<-function(rda,K)
 {
   zscores<-rda$CCA$v[,1:as.numeric(K)]
@@ -336,10 +248,12 @@ rdadapt_temp<- rdadapt(RDA_temp, 2)
 ## P-values threshold after Bonferroni correction
 thres_env <- 0.05/length(rdadapt_temp$p.values)
 ## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
-write.table(top_outliers, "Bonferroni_temp")
-qvalue <- data.frame(Loci = colnames(genotype), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
-outliers <- data.frame(Loci = colnames(genotype)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
+top_outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$p.values<thres_env)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genoWild_MAF005)[which(rdadapt_temp$p.values<thres_env)], split = "_"), function(x) x[1])))
+qvalue <- data.frame(Loci = colnames(genoWild_MAF005), p.value = rdadapt_temp$p.values, q.value = rdadapt_temp$q.value)
+outliers <- data.frame(Loci = colnames(genoWild_MAF005)[which(rdadapt_temp$q.values<0.05)], p.value = rdadapt_temp$p.values[which(rdadapt_temp$q.values<0.05)])
+
+
+#plot GEA temp
 
 locus_scores <- scores(RDA_temp, choices=c(1:2), display="species", scaling="none")
 TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
@@ -349,13 +263,13 @@ TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
 TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
 TAB_var <- as.data.frame(scores(RDA_temp, choices=c(1,2), display="bp"))
 loading_temp<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), linewidth=0.6) +
+  geom_point(data = TAB_loci, aes(x=20*RDA1, y=20*RDA2, colour = type), size = 2.5) +
   scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 40%") + ylab("RDA 2: 31%") +
+  geom_segment(data = TAB_var, aes(xend=1.1*RDA1, yend=1.1*RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
+  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.8, family = "Times") +
+  xlab("RDA 1: 37%") + ylab("RDA 2: 33%") +
   guides(color=guide_legend(title="Locus type")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
@@ -364,25 +278,28 @@ jpeg(file = "/lustre/rocchettil/RDA_temp_biplot.jpeg")
 plot(loading_temp)
 dev.off()
 
-write.table(qvalue, "Temp_GEA_Olive")
+write.table(qvalue, "Temp_GEA_Olive.csv", append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
 
-#plotting Mhanattan plot using the library qqman
-
-library(qqman)
-Manhattan_temp <- read.csv(file = "tempGEA.csv", header=TRUE) #import the p value result for temperature
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.0004206571), genomewideline = -log10(8.90948e-07))
+Manhattan_temp <- read.csv(file = "Temp_GEA_Olive.csv", header=TRUE) #import the p value result for temperature
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000364239), genomewideline = -log10(3.907776e-06))
 jpeg(file = "/lustre/rocchettil/Manh_RDA_temp.jpeg")
-manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.0004206571), genomewideline = -log10(8.90948e-07))
+manhattan(Manhattan_temp, col = c("darkred", "gray60"),suggestiveline = -log10(0.000364239), genomewideline = -log10(3.907776e-06))
 dev.off()
 
 #P distribution
 jpeg(file = "/lustre/rocchettil/Phist_Manh_RDA_temp")
-  hist(Manhattan_temp$P)
+hist(Manhattan_temp$P)
 dev.off()
+
+hist(qvalue$p.value)
+
 ```
-![RDA_temp_biplot](https://github.com/user-attachments/assets/2ba5bb2d-90a9-41f8-8a7f-8eabc41dc967)
-![Manh_RDA_temp](https://github.com/user-attachments/assets/31f0dfdb-f3c6-46d6-9b2b-ec013912f6a8)
-![Phist_Manh_RDA_temp](https://github.com/user-attachments/assets/dff5a23d-7370-4abb-86b2-f5fcc482d74b)
+![image](https://github.com/user-attachments/assets/c17ee38b-e07f-47e5-8526-424b7a1acb93)
+![image](https://github.com/user-attachments/assets/7998d98a-10dd-4338-bd5f-686b64c7a380)
+
 
 
 > Precipitation
@@ -453,9 +370,7 @@ hist(Manhattan_prec$P)
 dev.off()
 
 ```
-![RDA_prec_biplot](https://github.com/user-attachments/assets/44ccd4e3-5a74-41a0-a4e3-4b748d6b12c5)
-![Manh_RDA_prec](https://github.com/user-attachments/assets/fe009855-07ce-4f75-af66-7076c0e563c5)
-![Phist_Manh_RDA_prec](https://github.com/user-attachments/assets/7914d354-7468-4581-85be-769b7ad91afb)
+
 
 
 >All together
