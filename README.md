@@ -1,165 +1,63 @@
 
 ## Landscape Olea europea
 
-This page is created to track progresses on my postdoctoral research in modelling genomic offset in a wester Mediterrenean Olive population.
+This page is created to track progresses on my postdoctoral research in landscape genomics in a wester Mediterrenean Olive population.
 The population is composed by 359 individuals along a 15° latitude gradient from 30 to 45.
 
 ## Data input
 I started by entering the vcf into R using the vcfR package as follow
 ```
-library(vcfR)
-library(adegenet)
 
-setwd("/lustre/rocchettil")
-genoLAND.VCF <- read.vcfR("359_Olive_west.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(genoLAND.VCF)#transfrom file in genind object
-genotype<-as.data.frame(gl.genoLAND)
-genotype<-tibble::rownames_to_column(genotype, "geno") #transform raw name in column
+#### loading genotypic file and filtering individuals and MAF
+setwd("C:/Users/rocchetti/Desktop/running RDA GO")    #### cluster  setwd("/lustre/rocchettil")
 
-```
-Considering that downstream analysis like RDA do not work with NA values I found the following R for cycle for genetic data imputation. This code can be found in https://github.com/Capblancq/RDA-landscape-genomics/blob/main/RDA_landscape_genomics.Rmd
-
-```
-for (i in 1:ncol(genotype))
+geno359.VCF <- read.vcfR("359_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
+gl.genoLAND <- vcfR2genind(geno359.VCF)#transfrom file in genind object
+geno359<-as.data.frame(gl.genoLAND)
+geno359<-geno359%>% select(ends_with(".0"))
+for (i in 1:ncol(geno359))
 {
-  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
+  geno359[which(is.na(geno359[,i])),i] <- median(geno359[-which(is.na(geno359[,i])),i], na.rm=TRUE)
 }
-
-write.table(genotype, "geno_359_west_olive_MAF005__imputated.txt")
-
-#once the dataset was created I can enter the data table with read.table
-genotype<- read.table("geno_359_west_olive_MAF005__imputated.txt", header=TRUE)
 ```
-The following excel file data359 which includes uncorrelated (r<0.7) bioclimatic variables as well as latitude and longitude was uploaded
+# Diversity analysis and evaluation of introgression
 
-```
-data359<- read.csv("dataset_359_olive.csv", header = TRUE)
-```
-# Mantel test
-The Mantel test allows to conduct a linear regression analysis between the genetic distance and environmental distance. The significance of this regression suggests a Isolation by Environment IBE effect, where individual in ecologically similar locations they are more genetically similar compare to individuals in ecologically diverse locations.
+From the work of Lison 2024 135 truly wild genotypes were selected with ancestry _q>0.70_. The rest of 224 genotype were classified as admixed. To distinguish between historical vs recent introgression, we analyzed the hybrid index using ancestry-informative SNPs. To define the two parental hybrid sources, we conducted a PCA. 61 genotypes with the ,ost extreame postion along the PC1 from the truly wild were classified as cultivated.  
 
-As first step I'm going to estimate the genetic distance as pairwise FST (WC 1984) among the 27 populations using the R package Hierfstat. To run this, I have used a thinned 250Kb version of the vcf file.
-```
-library("hierfstat")
-pops<-read.table("27_Pops.txt", header=T) #one column table wih pop info for each individual
-#convert genInd and pop in hierfstat
-hierfstat<-genind2hierfstat(gl.genoLAND ,pop=pops)
-m<-genet.dist(hierfstat,diploid=TRUE,method="WC84")
-```
-We obtained a pairwide distance matrix of 325 pairwise comparisons.
-For each FST value we calcolated the transformed value as FST/(1-FST). To do so we converted the dist object in matrix, saved the text to ultimetly calcolate the FST/(1-FST) for each data point. Ther resulted matrix was then entered in R as matrix and trasnformed in dist object to run the subseauent mantel test.
-```
-p<-as.matrix(m)
-write.table(p, 'FSTpop27.txt')
-# calcolated FST/(1-FST) for each data point in excel
-
-f<-read.table('FSTtransf.txt')
-FSTpp<- as.matrix(f)
-distFST<- as.dist(FSTpp)
-```
-
-
-
-In the next chuck of codes we are going to define the Euclidean distance for geography and enviromental variables
-```
-#population environmental and geographic variables
-pop_env<- read.csv("pop_data.csv", header = TRUE)
-
-#bioclim PCdata frame
-Env <- scale(pop_env[,4:17], center=TRUE, scale=TRUE)
-dist.PCbio = dist(Env, method = "euclidean")
-
-#geographic data
-geo = data.frame(pop_env$long, pop_env$lat)
-dist.geo = dist(geo, method = "euclidean")
-
+>PCA on the whole dataset
 
 ```
-#Mantel test
-With the aim if there to underline Isolation by Environment (IBE) I used a Mantel test to see if there is a linear correlation between ecological distance and genetic distance matrices
-```
-# mantel test Genetic distance-ecological distance
-geno_eco = mantel(distFST, dist.PCbio, method="spearman", permutations=1000,  na.rm = TRUE)
-geno_eco
-summary(lm(dist.PCbio~m))
-graph = mantel.correlog(m, dist.PCbio, XY=NULL, n.class=0, break.pts=NULL, 
-                        cutoff=TRUE, r.type="pearson", nperm=999, mult="holm", progressive=TRUE)
+res.pca359<-PCA(geno359, scale.unit = TRUE, ncp = 5, graph = TRUE)
+fviz_eig(res.pca359, addlabels = TRUE, ylim = c(0, 50))#  scree plot
+# Create a data frame for PCA results
+ind359 <- get_pca_ind(res.pca359)
+ind359
+pca_data359 <- as.data.frame(ind359$coord)
+pca_data359$group <- "Admixed"
+pca_data359$group[rownames(pca_data359)%in%rownames(geno_Wild_GEA)] <- "wild"
+pca_data359$group[rownames(pca_data359)%in%rownames(geno_Cul_GEA)] <- "cultivated"
 
-
-xx = as.vector(distFST) #convert distance matrix into a vector
-zz = as.vector(dist.PCbio)
-manatelmatrix = data.frame(zz,xx)
-mm = ggplot(manatelmatrix, aes(y = xx, x = zz))+
-  geom_point(size = 4, alpha = 0.75, colour = "black",shape = 21,fill = "grey") + 
-  geom_smooth(method = "lm", colour = "red", alpha = 0.2)+
-  labs(y = "FST/(1-FST)", x = "Euclidean ecological distance")+
-  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
-         axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
-         axis.title= element_text(face = "bold", size = 18, colour = "black"), 
-         panel.background = element_blank(), 
-         panel.border = element_rect(fill = NA, colour = "black"), 
-         legend.title = element_text(size =12, face = "bold", colour = "black"),
-         legend.text = element_text(size = 10, face = "bold", colour = "black"), 
-         legend.position = "top", strip.background = element_rect(fill = "grey90", colour = "black"),
-         strip.text = element_text(size = 9, face = "bold"))
-jpeg(file = "/lustre/rocchettil/mantel_olive_geno_eco.jpeg", width = 350, height = 350)
-plot(mm)
-dev.off()
+qq<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = pca_data359, aes(x=Dim.1, y=Dim.2, colour = group), size = 2.5) +
+  scale_color_manual(values = c("grey", "darkgreen","purple")) +
+  xlab("PC1: 16%") + ylab("PC2: 2%") +
+  guides(color=guide_legend(title="Group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+qq
 
 ```
-
-![mantel_olive_geno_eco](https://github.com/user-attachments/assets/90200675-9ae9-4ee3-be18-e21248c72ec7)
-
+![image](https://github.com/user-attachments/assets/479d6c01-d30e-4073-9c2b-a615d72589c2)
 
 
-Results suggests a moderate (r: 0.32) though significant (P<0.01) correlation between genetic euclidean distance and ecological euclidean distances. 
-Considering the potential effect of geography in the ecological distance I used partial Mantel test which test for correlation between genetic distance and environmental distance considering geographic distance as covariate
+> Indentifing recent hybrids vs past introgression
 
-
-```
-#partial Mantel test 
-partial_mantel = mantel.partial(distFST, dist.PCbio, dist.geo, method = "spearman", permutations = 1000,
-                                na.rm = TRUE)
-partial_mantel
-summary(lm(m~dist.PCbio|dist.geo))
-#plotting partial Mantel test
-xx = as.vector(distFST) #convert distance matrix into a vector
-yy= as.vector(dist.geo)
-zz = as.vector(dist.PCbio)
-partial_mantel_matrix = data.frame(xx,zz,yy)#new data frame with vectorize distance matrix
-
-mp = ggplot(partial_mantel_matrix, aes(y = xx, x = zz)) + 
-  geom_point(size = 2.5, alpha = 0.75, colour = "black",shape = 21, aes(fill = yy)) + 
-  geom_smooth(method = "lm", colour = "red", alpha = 0.2) + 
-  scale_fill_continuous(high = "navy", low = "lightblue")+
-  labs(y = "FST/(1-FST)", x = "Eucledian ecological distance", fill= "geographic distance")+
-  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 18), 
-         axis.text.y = element_text(face = "bold", size = 18, colour = "black"), 
-         axis.title= element_text(face = "bold", size = 18, colour = "black"), 
-         panel.background = element_blank(), 
-         panel.border = element_rect(fill = NA, colour = "black"), 
-         legend.title = element_text(size =12, face = "bold", colour = "black"),
-         legend.text = element_text(size = 10, face = "bold", colour = "black"), 
-         legend.position = "top", strip.background = element_rect(fill = "grey90", colour = "black"),
-         strip.text = element_text(size = 9, face = "bold"))
-
-
-jpeg(file = "/lustre/rocchettil/partial_mantel_olive.jpeg")
-plot(mp)
-dev.off()
-```
-The result confirmes the significant (P<0.01) and moderate correlation (r:0.24) between environmental distance and genetic distance. Overall this result suggest a potential Isolation-by-envirnoment effect IBE on the sampled population.
-
-![partial_mantel_olive](https://github.com/user-attachments/assets/32430757-a42f-4b22-b496-ec5b2480ab37)
-
-# Indentifing recent hybrids vs past introgression
 The significant admixture present in our collection between wild and cultivated material can be derived from recent crossing forming F1 hybrids or from past generations of crossing where natural selection had the possibilty to act. The GEA identification presume that the associated QTL derived from processes of local adaptation where environmental selection had the generational time to act. In our case the cultivated genome from cultivars vegetatevly progated mainly evolved in the eastern part of the mediterrenan basin, so it is paramount to identify the presence of recent F1 hybrids where the cultivated genome have been recently introduced and where selections did not have the generational time to act.
 
 To investigate the presence of F1 hybrids I identified a recent devoped Rpackage that allow to identified ancestry-informative markers and estimate their hybrids index with the relative presence of F1, BC1, BC2 or past introgression.  https://omys-omics.github.io/triangulaR/index.html
 
-From the PCA analysis I've diveded the germplasm in Wild and Cultivated using PC1 values <-20 and >40 respectively. The intermidiate genotypes represent admixed genotypes for which hybrid index will be checked
-
-![image](https://github.com/user-attachments/assets/3e2f6668-8e47-4df7-9652-07d6fc575484)
 
 ```
 library(triangulaR)
