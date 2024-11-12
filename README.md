@@ -510,704 +510,92 @@ plot(projection)
 ![image](https://github.com/user-attachments/assets/8b694ec0-5e89-4b83-9d4a-d3e013e1000e)
 
 
-# estimation of genomic offset between wild and domesticated
+# estimation of cultivars offsets
 
-The previously identified GEA from the wild dataset represent QTLs involved in adaptation in the western Mediterrenean. Does the domesticated germplasm cultivated in this region have the same adaotive value? To answer this question we can enter in the RDA model the domesticated genotype info filtered for the wild GEA QTL. The idea is to measure for each pixel (each pixel have the respective environmental variable) the distance between the wild adaptive value and the domesticated adaptive value. 
+The previously identified GEA from the wild dataset represent QTLs involved in adaptation in the western Mediterrenean. Can we use this information to inform cultivar adaptive values? To answer this question we can enter in the RDA model the domesticated genotype info filtered for the wild GEA QTL. The idea is to plot in the RDA space the position of cultivated genotypes based on their GEA information and the "best suited" genotypes using the enviromental information from the sample location. The Euclidean distance in the RDA adaptive space between this two point will represent the cultivar offset.
 
-The first step is to visualize the genetic variation of domesticated genotypes uising only GEA SNPs. To do so we are going to use a PCA.
-
-Filter the original dataset of 359 genotypes for only SNP detected by the previous GEA analysis.
+>prepare dataset with cultivated genotype and GEA QTLs
 
 ```
 
-geno359GEA.VCF <- read.vcfR("359_genotypes_GEA_filtered.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(geno359GEA.VCF)#transfrom file in genind object
-geno<-read.table("359_genotypes_GEA_filtered.vcf.recode.geno")
-genotype<-as.data.frame(gl.genoLAND)
-genotype<-genotype %>% select(ends_with(".0"))
-for (i in 1:ncol(genotype))
-{
-  genotype[which(is.na(genotype[,i])),i] <- median(genotype[-which(is.na(genotype[,i])),i], na.rm=TRUE)
-}
-
-
+#filter cultivar individuals
+cul_list<-read.table("P2_individual_list.txt", header = F)
+genoCul <-  geno359[rownames(geno359)%in% cul_list$V1, ]
+geno_Cul_GEA <- genoCul[, colnames(genoCul) %in% colnames(geno_Wild_GEA)]
 
 ```
-Enter the population informations. For simplicity I al going to use a popolation differentiations based on geographic origins: (Morocco, Spain, France, Corse)
+
+Predict the RDA scores fro the domesticated genotypes
 ```
-pop_hybrid<-read.table("list_359_hybrid_pops.txt") #one column table wih pop info for each individual
-geneIndpop <- vcfR2genind(geno359GEA.VCF, pop=pop_hybrid)#transfrom file in genind object
+fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno_Cul_GEA, type="wa", scaling = 2)
 
-x.olive <- tab(geneIndpop, freq=TRUE, NA.method="mean")
-pca.olive <- dudi.pca(x.olive, center=TRUE, scale=FALSE)
-popfac<-as.factor(pop_hybrid$V1)
-s.class(pca.olive$li, fac=popfac,col=c("darkgreen", "purple", "grey"))
-jpeg(file = "/lustre/rocchettil/PCA_359_GEA.jpeg")
-s.class(pca.olive$li, fac=popfac,col=c("purple", "darkgreen", "grey"))
-dev.off()
+TAB_gen135 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites", 1:3))
+TAB_gen135$type <- "wild"
+TAB_gen61 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:3])
+TAB_gen61$type <- "cultivated"
+wild_cult <- rbind(TAB_gen135, TAB_gen61)
 
-eig.perc <- 100*pca.olive$eig/sum(pca.olive$eig)
-head(eig.perc)
-
-hybrid_pop<- read.table("hybrid_index_359.txt", header = T)
-hybrid_pop$hybrid_classes<- "hybrid_classes"
-hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_classes & ((hybrid_pop$hybrid.index > 0.49 & hybrid_pop$hybrid.index < 0.55 )& (hybrid_pop$heterozygosity > 0.84))] <- "F1"
-
-hybrid_pop$hybrid_classes[hybrid_pop$hybrid_classes %in% hybrid_pop$hybrid_classes & (hybrid_pop$hybrid.index < 0.25 )& (hybrid_pop$heterozygosity > 0.84))] <- "BC1 wild"
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1:3), display="bp"))
 
 ```
-Development of the predict function of RDA
+Prediction of cultivated best fit
+```
+data_cul<- read.csv("Dom_61.csv", header = TRUE)
+env_c = data_cul[ ,2:15]
+Env_cul <- data.frame(row.names= data_cul[,1] ,scale(env_c, center=TRUE, scale=TRUE))
+
+
+fitted_dom_Envscores <- predict(RDA_all_enriched, newdata=Env_cul, type="lc", scaling = 2)
+TAB_best_cul<- data.frame(geno = row.names(fitted_dom_Envscores), fitted_dom_Envscores[,1:3])
+
+TAB_best_cul$type <- "best cultivated"
+
+wild_cult_best<-rbind(wild_cult, TAB_best_cul)
 
 ```
-# extract GEA QTL from 359datafile
-geno62_dom <- read.vcfR("domesticated_61_MAF005.vcf.recode.vcf")#import vcf file
-gl.genoLAND <- vcfR2genind(geno62_dom)#transfrom file in genind object
-geno62_dom<-as.data.frame(gl.genoLAND)
-geno62_dom<-geno62_dom %>% select(ends_with(".0"))
-for (i in 1:ncol(geno62_dom))
-{
-  geno62_dom[which(is.na(geno62_dom[,i])),i] <- median(geno62_dom[-which(is.na(geno62_dom[,i])),i], na.rm=TRUE)
-}
-
-geno62_dom_GEA <- geno62_dom[, colnames(geno62_dom) %in% colnames(geno_all_enrich)]
-
-# Predict RDA scores for the domesticated genotypes
-
-  fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno62_dom_GEA, type="wa")
-```
-I obtained the following table where each locus of the new genoptypes have been predicted. I need to figure out how to summarize this info for each individual given the locus score.
-
-|                                         |          RDA1  |        RDA2|
-|-------------------------------------------|---------------|-------------|
-|Oe9_LG01_filtered_vcf:Oe9_LG01_45747.0     |0.0142150543 |-0.0701663364|
-|Oe9_LG01_filtered_vcf:Oe9_LG01_119415.0    |0.0281208965 | 0.0387941219|
-|Oe9_LG01_filtered_vcf:Oe9_LG01_1053508.0  |-0.1239368872 |-0.1176402760|
-
-
-I can now assembly the 202 (wild+admixed) RDA scores and the 61 (cultivated) RDAscores and plot the two groups in the same RDA biplot
+>plot the result in the RDA space
 
 ```
-TAB_gen202 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
-TAB_gen202$group <- "wild_admixed"
-TAB_gen62 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:2])
-TAB_gen62$group <- "cultivated"
-merged_data <- rbind(TAB_gen202, TAB_gen62)
 
-TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
-
-dd<-ggplot() +
+hh<-ggplot() +
   geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
   geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = merged_data, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
-  scale_color_manual(values = c("darkred", "darkorange")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
-  guides(color=guide_legend(title="Group")) +
+  geom_point(data = wild_cult_best, aes(x=RDA1, y=RDA2, shape=type, color=type, size=type)) +
+  scale_shape_manual(values=c(16, 17, 3))+
+  scale_color_manual(values=c('#56B4E9', '#E69F00','grey48'))+
+  scale_size_manual(values=c(3,3,2))+
+  geom_segment(data = TAB_var, aes(xend=RDA1*4, yend=RDA2*4, x=0, y=0), colour="black", size=0.15, linetype=1, arrow = arrow(length=unit(0.20,"cm"),type = "closed")) +
+  geom_label_repel(data = TAB_var, aes(x=4*RDA1, y=4*RDA2, label = row.names(TAB_var)), size = 3, family = "Times") +
+  xlab("RDA 1: 28%") + ylab("RDA 2: 23%") +
+  #guides(legend(title="Group")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-dd
-
-```
-```
-merged_geno <- rbind(geno62_dom_GEA, geno_all_enrich)
-res.pca<-PCA(merged_geno, scale.unit = TRUE, ncp = 5, graph = TRUE)
-# Create a data frame for PCA results
-pca_data <- as.data.frame(ind$coord)
-pca_data$group <- "group"
-pca_data$group[rownames(pca_data)%in%TAB_gen202$geno] <- "wild_admixed"
-pca_data$group[rownames(pca_data)%in%TAB_gen62$geno] <- "cultivated"
-
-pp<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = pca_data, aes(x=Dim.1, y=Dim.2, colour = group), size = 2.5) +
-  scale_color_manual(values = c("darkred", "darkorange")) +
-  xlab("PC1: 15%") + ylab("PC2: 3%") +
-  guides(color=guide_legend(title="Group")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-pp
+hh
 ```
 
-```
-#plot genotypes
-
-TAB_gen <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites"))
-
-Geno <- merge(TAB_gen, Variables[, 1:7] ,by="geno")
-TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1,2), display="bp"))
-loading_geno_all_enriched<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = Geno, aes(x=RDA1, y=RDA2, colour = group), size = 2.5) +
-  scale_color_manual(values = c("blue", "darkorange")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 30%") + ylab("RDA 2: 23%") +
-  guides(color=guide_legend(title="Locus type")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-loading_geno_all_enriched
-```
-
-# Local Genomic offset RDA based
-
-Extract future bioclimatic raster file from CHELSA database. In this first step I used predictions 2071-2100 IPSL ssp585.
-```
-#future temp scenario
-
-library(raster)
-library("readxl")
-
-
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio2_MPI_ssp585_2100_masked.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio10_MPI_ssp585_2100_masked.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
-names(bio2) = 'bio2'
-names(bio10) = 'bio10'
-names(bio11) = 'bio11'
-names(bio15) = 'bio15'
-names(bio18) = 'bio18'
-names(bio19) = 'bio19'
-#stack the different raster file
-ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
-ras_2100_var_genotypes<- data.frame(data202$IDSample, data202$group, extract(ras_2100_var, data202[,9:10]))
-write.csv(ras_2100_var_genotypes, "ras_2100_var_genotypes.csv")
+Calculate the euclidean distance between cultivated and best cultivated
 
 ```
-function genomic offset
+dist_data<-merge(TAB_gen61,TAB_best_cul, by = "geno" )
+dist_data$offset<-sqrt((dist_data$RDA1.x - dist_data$RDA1.y)^2 + (dist_data$RDA2.x - dist_data$RDA2.y)^2)
+hist(dist_data$offset)
+write.table(dist_data, file = "cultivar_mismatch.csv", append = FALSE, quote = TRUE, sep = " ",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")
 ```
-
-#### Function to predict genomic offset from a RDA model
-genomic_offset <- function(RDA, K, env_pres, env_fut, range = NULL, method = "loadings", scale_env, center_env){
-
-  # Formatting and scaling environmental rasters for projection
-  var_env_proj_pres <- as.data.frame(scale(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
-  var_env_proj_fut <- as.data.frame(scale(rasterToPoints(env_fut[[row.names(RDA$CCA$biplot)]])[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
-
-  # Predicting pixels genetic component based on the loadings of the variables
-  if(method == "loadings"){
-    # Projection for each RDA axis
-    Proj_pres <- list()
-    Proj_fut <- list()
-    Proj_offset <- list()
-    for(i in 1:K){
-      # Current climates
-      ras_pres <- env_pres[[1]]
-      ras_pres[!is.na(ras_pres)] <- as.vector(apply(var_env_proj_pres[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))
-      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
-      Proj_pres[[i]] <- ras_pres
-      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
-      # Future climates
-      ras_fut <- env_fut[[1]]
-      ras_fut[!is.na(ras_fut)] <- as.vector(apply(var_env_proj_fut[,names(RDA$CCA$biplot[,i])], 1, function(x) sum( x * RDA$CCA$biplot[,i])))
-      Proj_fut[[i]] <- ras_fut
-      names(ras_fut) <- paste0("RDA_fut_", as.character(i))
-      names(Proj_fut)[i] <- paste0("RDA", as.character(i))
-      # Single axis genetic offset 
-      Proj_offset[[i]] <- abs(Proj_pres[[i]] - Proj_fut[[i]])
-      names(Proj_offset)[i] <- paste0("RDA", as.character(i))
-    }
-  }
-  
-  # Predicting pixels genetic component based on predict.RDA
-  if(method == "predict"){ 
-    # Prediction with the RDA model and both set of envionments 
-    pred_pres <- predict(RDA, var_env_proj_pres[,-c(1,2)], type = "lc")
-    pred_fut <- predict(RDA, var_env_proj_fut[,-c(1,2)], type = "lc")
-    # List format
-    Proj_offset <- list()    
-    Proj_pres <- list()
-    Proj_fut <- list()
-    for(i in 1:K){
-      # Current climates
-      ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred_pres[,i])), crs = crs(env_pres))
-      names(ras_pres) <- paste0("RDA_pres_", as.character(i))
-      Proj_pres[[i]] <- ras_pres
-      names(Proj_pres)[i] <- paste0("RDA", as.character(i))
-      # Future climates
-      ras_fut <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred_fut[,i])), crs = crs(env_pres))
-      names(ras_fut) <- paste0("RDA_fut_", as.character(i))
-      Proj_fut[[i]] <- ras_fut
-      names(Proj_fut)[i] <- paste0("RDA", as.character(i))
-      # Single axis genetic offset 
-      Proj_offset[[i]] <- abs(Proj_pres[[i]] - Proj_fut[[i]])
-      names(Proj_offset)[i] <- paste0("RDA", as.character(i))
-    }
-  }
-  
-  # Weights based on axis eigen values
-  weights <- RDA$CCA$eig/sum(RDA$CCA$eig)
-  
-  # Weighing the current and future adaptive indices based on the eigen values of the associated axes
-  Proj_offset_pres <- do.call(cbind, lapply(1:K, function(x) rasterToPoints(Proj_pres[[x]])[,-c(1,2)]))
-  Proj_offset_pres <- as.data.frame(do.call(cbind, lapply(1:K, function(x) Proj_offset_pres[,x]*weights[x])))
-  Proj_offset_fut <- do.call(cbind, lapply(1:K, function(x) rasterToPoints(Proj_fut[[x]])[,-c(1,2)]))
-  Proj_offset_fut <- as.data.frame(do.call(cbind, lapply(1:K, function(x) Proj_offset_fut[,x]*weights[x])))
-  
-  # Predict a global genetic offset, incorporating the K first axes weighted by their eigen values
-  ras <- Proj_offset[[1]]
-  ras[!is.na(ras)] <- unlist(lapply(1:nrow(Proj_offset_pres), function(x) dist(rbind(Proj_offset_pres[x,], Proj_offset_fut[x,]), method = "euclidean")))
-  names(ras) <- "Global_offset"
-  Proj_offset_global <- ras
-  
-  # Return projections for current and future climates for each RDA axis, prediction of genetic offset for each RDA axis and a global genetic offset 
-  return(list(Proj_pres = Proj_pres, Proj_fut = Proj_fut, Proj_offset = Proj_offset, Proj_offset_global = Proj_offset_global, weights = weights[1:K]))
-}
+We used the new Cultivar offset variable and checked the correlation with the other bioclimatic and geographic variable. The file _cultivar_offset_ has been integrated with the climatic and geographic variable in excel
 
 ```
+cultivar_offset<- read.csv("cultivar_mismatch.csv")
 
-Genomic offset projection
-```
-local_offeset_proj_2100_ssp585 <- genomic_offset(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, env_fut = ras_2100_var, range = range, method = "loadings", scale_env = scale_var, center_env = center_var)
-
-#local_offeset_proj_2100_ssp585$Proj_offset_global is the raster file for overall GO
-
-plot(local_offeset_proj_2100_ssp585$Proj_offset_global)
-
-writeRaster(local_offeset_proj_2100_ssp585$Proj_offset_global,'Local_GO_2100_MPI_ssp585.tif',options=c('TFW=YES'))#save raster for QGIS
-```
-I prefere to plot the raster using QGIS.
-
-
-
-The result show a lower GO at low latitude compared to higher latitude level, suggesting that the current adaptive value of souther genotypes will allow them to continue to grow in future climatic condition.
-The Local Genomic offsets reflects the adaptive genomic landscape where the southern part of Spain and the costal area of Morocco already presented adaptive GEA for high temperature and low precipitation. In the 2100future scenarios where temperature are going to rise following the latitude gradient will threat the norther part of the olive niche where GEA for higher temperature are not yet present. The results highlight the area of Occitanie and central Spain with potential high genomic offsets in 2100 climatic scenario.
-
-![image](https://github.com/user-attachments/assets/1a42ad8d-b5df-4f11-ac26-0860b5848ad5)
-
-
-
-The raster obtained has a GO value for each pixel. In theory I can extract genotype values using latitude and longitude info to ultimetly run an ANOVA between the WLD and ADM group.
-
-```
-## Extracting environmental values for each source population
-GO_2100_ssp585_genotypes<- data.frame(data359$IDSample, data359$group, extract(res_RDA_all_proj_2100_ssp585$Proj_offset_global, data359[,9:10]))
-write.table(GO_2100_ssp585_genotypes, "GO_2100_ssp585_genotypes;txt")
-write.csv(GO_2100_ssp585_genotypes, "GO_2100_ssp585_genotypes.csv")
-
-#One-way anova with boxplots. Mainly used to plot the environmental effect for a specific trait
-
-GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
-names(GO_2100_ssp585_geno)[2]<- paste("geno")
-names(GO_2100_ssp585_geno)[3]<- paste("group")
-names(GO_2100_ssp585_geno)[4]<- paste("GO_2100_ssp585")
-
-D<- ggplot(GO_2100_ssp585_geno, aes(x=group, y=GO_2100_ssp585, fill=group)) + 
-  geom_boxplot()+
-  theme_bw(base_size = 14)+
-  theme(axis.text.x = element_text(hjust=1,face="bold", size=14, angle=45))+ stat_compare_means(method = "anova")+
-scale_fill_manual(values=c( "blue", "darkorange"))+
-  labs(y = "GO_2100_ssp585_geno")
-jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_WLD_ADM.jpeg")
-plot(D)
-dev.off()
-```
-![GO_2100_ssp585_WLD_ADM](https://github.com/user-attachments/assets/98a8d41d-2763-42ef-8934-6266c5ee4910)
-
-tentative of correction for specific genotype climatic distance
-
-```
-#wild vs ADM
-GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
-model <- lm(GO_2100_ssp585 ~ group + cov, data = GO_2100_ssp585_geno)
-summary(model)
-value<-lsmeans(model,~ group|cov)
-
-#latitude range
-GO_2100_ssp585_geno<- read.csv("GO_2100_ssp585_genotypes.csv", header = TRUE)
-model <- lm(GO_2100_ssp585 ~ latitude_range + cov, data = GO_2100_ssp585_geno)
-summary(model)
-value<-lsmeans(model,~ latitude_range|cov)
-```
-The script applied the follwing model 
-$Y = group + clim.dist + e$
-
-where _Y_ is the estimated genomic offsets, _group_ the ADM and WLD differentiation and _clim.dist_ the climatic distance between current and future scenario for each genotype.
-
-
-_clim.dist_ is the value calcolated for each genotype that averages all the coefficients of variation calcolated  for the same clim variable between future and current clim scenario
-
-
- |            | Estimate Std |  Error | t value | P| 
- |-------------|--------------|--------|---------|---|
- | Intercept |  2.28728   |  0.15488 |  14.768 |  < 2e-16 ***| 
- | groupWild   | -0.38014  |   0.04019  | -9.459 |  < 2e-16 ***| 
- | cov         | -7.42711  |   1.43705 |  -5.168 | 3.95e-07 ***| 
- 
-
-
-
- | group |  lsmean  |   SE | df |lower.CL| upper.CL|
- |--------|---------|-------|---|---------|----------|
- |  Admixed |  1.51 |0.0245| 356 |    1.46 |    1.55|
- |  Wild    |  1.13 |0.0317 |356  |   1.06 |    1.19|
-
-```
-df<- as.data.frame(value)
-p<- ggplot(df, aes(x=group, y=lsmean, color = group)) + 
-  geom_line() +
-  geom_point()+
-scale_color_manual(values=c( "blue", "darkorange"))+
-  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.2,
-                 position=position_dodge(0.05))+
- theme_bw(base_size = 14)
-jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_adjusted_WLD_ADM.jpeg")
-plot(p)
-dev.off()
-
-
-df<- as.data.frame(value)
-l<- ggplot(df, aes(x=latitude_range, y=lsmean, color = latitude_range)) + 
-  geom_line() +
-  geom_point()+
-scale_color_manual(values = c("darkgreen","red", "darkorange"))+
-  geom_errorbar(aes(ymin=lower.CL, ymax=upper.CL), width=.2,
-                 position=position_dodge(0.05))+
- theme_bw(base_size = 14)
-jpeg(file = "/lustre/rocchettil/GO_2100_ssp585_adjusted_Lat_range.jpeg")
-plot(l)
-dev.off()
- 
-```
-![GO_2100_ssp585_adjusted_WLD_ADM](https://github.com/user-attachments/assets/9946f745-7f66-4966-99b7-f5e3164280be)
-![GO_2100_ssp585_adjusted_Lat_range](https://github.com/user-attachments/assets/899f67ec-be2c-4eef-b0f8-1d656a2b9287)
-
-Even applying a correction using genotype climatic distance as covariate we can still see a significant difference between Wild and Admixed.
-
-
-
-# RDA on candidate introgression zones
-I identified populations where both wild and admixed occure together. This subset of population can be used to investigate the potetial presence of GEA related to admixture event.
-The strategy derived from the following assumption. GEA analysis allow to identify QTLs that essentially vary along an environmental cline highilighting local adaptation. According to the demographic findings of a monophyletic origin of the cultivated germplasm from the easter mediterrenean, the cultivated germplasm is less likely to be differentiated along an envirmental gradient. Following this assumption, in admixed populations we should mainly find GEA QTLs beloging the the wild genepool.
-Let's first upload the new genotypic datafile of 85 individuals and applying the MAF 0.05.
-
-```
-setwd("/lustre/rocchettil")
-  genoINTRO.VCF <- read.vcfR("introgressed_region_Olive_west_MAF005.vcf.recode.vcf")#import vcf file
-gl.genointro <- vcfR2genind(genoINTRO.VCF)#transfrom file in genind object
-genotype_intro<-as.data.frame(gl.genointro)
-```
-need to remouve NA. Imputation
-
-```
-for (i in 1:ncol(genotype_intro))
-{
-  genotype_intro[which(is.na(genotype_intro[,i])),i] <- median(genotype_intro[-which(is.na(genotype_intro[,i])),i], na.rm=TRUE)
-}
-
-write.table(genotype_intro, "geno_86_west_olive_introgressed_MAF005__imputated.txt")
-
-```
-Enter csv file with bioclimatic, geographic and PC.
-
-```
-#standardize bioclim variable
-dataintro<- read.csv("introgression_zone.csv", header = TRUE)
-bio = dataintro[ ,17:30]
-Env <- scale(bio, center=TRUE, scale=TRUE)
-Env <- as.data.frame(Env)
-
-#combining geographic, Popstructure, environmental (scaled) variables
-Variables_intro <- data.frame(dataintro$IDSample, dataintro$long, dataintro$lat, dataintro$group,dataintro$latitude_range, dataintro$region, dataintro$PC1, dataintro$PC2, dataintro$PC3,  Env)
-names(Variables_intro)[1]<- paste("geno")
-names(Variables_intro)[2]<- paste("long")
-names(Variables_intro)[3]<- paste("lat")
-names(Variables_intro)[4]<- paste("group")
-names(Variables_intro)[5]<- paste("latitude_range")
-names(Variables_intro)[6]<- paste("region")
-names(Variables_intro)[7]<- paste("PC1")
-names(Variables_intro)[8]<- paste("PC2")
-names(Variables_intro)[9]<- paste("PC3")
- ```
-GEA Temperature Redundancy analysis
-
-```
-RDA_temp_intro <- rda(genotype_intro ~ bio2+bio10+bio11 +  Condition(PC1 + PC2 + PC3 + lat + long), Variables_intro)
-summary(eigenvals(RDA_temp_intro, model = "constrained"))
-library(robust)
-remotes::install_github("koohyun-kwon/rdadapt")
-source("./src/rdadapt.R")
-rdadapt<-function(rda,K)
-{
-  zscores<-rda$CCA$v[,1:as.numeric(K)]
-  resscale <- apply(zscores, 2, scale)
-  resmaha <- covRob(resscale, distance = TRUE, na.action= na.omit, estim="pairwiseGK")$dist
-  lambda <- median(resmaha)/qchisq(0.5,df=K)
-  reschi2test <- pchisq(resmaha/lambda,K,lower.tail=FALSE)
-  qval <- qvalue(reschi2test)
-  q.values_rdadapt<-qval$qvalues
-  return(data.frame(p.values=reschi2test, q.values=q.values_rdadapt))
-}
-rdadapt_temp_intro<- rdadapt(RDA_temp_intro, 2)
-## P-values threshold after Bonferroni correction
-thres_env <- 0.05/length(rdadapt_temp_intro$p.values)
-## Identifying the loci that are below the p-value threshold
-top_outliers <- data.frame(Loci = colnames(genotype_intro)[which(rdadapt_temp_intro$p.values<thres_env)], p.value = rdadapt_temp_intro$p.values[which(rdadapt_temp_intro$p.values<thres_env)], contig = unlist(lapply(strsplit(colnames(genotype_intro)[which(rdadapt_temp_intro$p.values<thres_env)], split = "_"), function(x) x[1])))
-write.table(top_outliers, "Bonferroni_temp_introgression")
-qvalue <- data.frame(Loci = colnames(genotype_intro), p.value = rdadapt_temp_intro$p.values, q.value = rdadapt_temp_intro$q.value)
-outliers <- data.frame(Loci = colnames(genotype_intro)[which(rdadapt_temp_intro$q.values<0.05)], p.value = rdadapt_temp_intro$p.values[which(rdadapt_temp_intro$q.values<0.05)])
-
-locus_scores <- scores(RDA_temp_intro, choices=c(1:2), display="species", scaling="none")
-TAB_loci <- data.frame(names = row.names(locus_scores), locus_scores)
-TAB_loci$type <- "Not associated"
-TAB_loci$type[TAB_loci$names%in%outliers$Loci] <- "FDR"
-TAB_loci$type[TAB_loci$names%in%top_outliers$Loci] <- "Bonferroni"
-TAB_loci$type <- factor(TAB_loci$type, levels = c("Not associated", "FDR", "Bonferroni"))
-TAB_var <- as.data.frame(scores(RDA_temp_intro, choices=c(1,2), display="bp"))
-loading_temp_intro<-ggplot() +
-  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
-  geom_point(data = TAB_loci, aes(x=RDA1*40, y=RDA2*40, colour = type), size = 2.5) +
-  scale_color_manual(values = c("gray90", "#F9A242FF", "#6B4596FF")) +
-  geom_segment(data = TAB_var, aes(xend=RDA1, yend=RDA2, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
-  geom_label_repel(data = TAB_var, aes(x=1.1*RDA1, y=1.1*RDA2, label = row.names(TAB_var)), size = 2.5, family = "Times") +
-  xlab("RDA 1: 40%") + ylab("RDA 2: 31%") +
-  guides(color=guide_legend(title="Locus type")) +
-  theme_bw(base_size = 11, base_family = "Times") +
-  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
-loading_temp_intro
-```
-Prepere a file with only temperature GEA QTL
-
-```
-library(tidyverse)
-vector_gea<- c(top_outliers$Loci)
-GEA_temp_intro<- genotype_intro %>% select(all_of(vector_gea))
-write.table(GEA_temp_intro, "GEA_temp_introgression.txt")
+library(metan)
+df<-cultivar_offset[,c("offset","bio2", "bio10", "bio11","bio15", "bio18", "bio19", "long", "lat")]
+cc<-corr_plot(df)
+cc
 ```
 
+![image](https://github.com/user-attachments/assets/5a7ebd67-6be1-471a-9ba9-6e5006a0a540)
 
+The results show a significant correlation with most climatic and geographic variables. Our interpretation suggests that higher offsets are present at lower latitudes, particularly in southern Spain, where winter temperatures are higher, precipitation seasonality is more pronounced, and summer precipitation is scarcer.
 
-# Gradient Forest
-Gradient Forest is an alternative approach widely use in landscape genomics studies, where the relation between genetic component and environmental component is constructed using the random forest machine learning approach.
-This code is still under construction. In this part I'm keeping track of the progresses achived.
-
-In this example I used a genotipic data file only from the Wild group
-```
-#Genomic offset runGF only on wild (file from Lison)
-install.packages("gradientForest", repos="http://R-Forge.R-project.org")
-
-library(vcfR)
-library(adegenet)
-
-setwd("/lustre/rocchettil")
-```
-load the imputated genotype datafile for the 202 selected individual in .txt 
-```
-genotype<- read.table("geno_202_west_olive_MAF005__imputated.txt", header=TRUE)
-```
-enter the environmental variable table
-
-```
-data202<- read.csv("dataset_202_west.csv", header = TRUE)
-bio = data202[ ,17:30]
-Var <- data.frame(bio$bio2, bio$bio10, bio$bio11, bio$bio15, bio$bio18, bio$bio19)
-
-names(Var)[1]<- paste("bio2")
-names(Var)[2]<- paste("bio10")
-names(Var)[3]<- paste("bio11")
-names(Var)[4]<- paste("bio15")
-names(Var)[5]<- paste("bio18")
-names(Var)[6]<- paste("bio19")
-```
-
-
-To run the Gradient Forest function I used the gradient forest package.
-In this link there is a guide https://gradientforest.r-forge.r-project.org/biodiversity-survey.pdf
-
-Once we are sure that the geno_wild dataset and Env_tab dataset are in the same order for sample IDs we can apply the following code
-
-```
-library(gradientForest)
-
-
-gf <- gradientForest(cbind(genotype, Var), 
-                     predictor.vars=colnames(Var),
-                     response.vars=colnames(genotype), 
-                     ntree=500, #set the number of individual decision tree
-                     corr.threshold=0.5, trace=F)
-```
-From this function we can print:
-
->the Environmental variable importance.
-
->split (split node of decison tree; their order in the decision tree reflects the variable importance) density plot.
-
-```
-VARimportance <- (gf, "Weighted")
-
-most_important <- names(importance(gf))[1:25]
-par(mgp = c(2, 0.75, 0))
-plot(gf)
-plot(gf, plot.type = "S", imp.vars = most_important,leg.posn = "topright", cex.legend = 0.4, cex.axis = 0.6, cex.lab = 0.7, line.ylab = 0.9, par.args = list(mgp = c(1.5,0.5, 0), mar = c(3.1, 1.5, 0.1, 1)))
-```
-Once the gradient forest model is created we can use it to estimate the adaptive component of each environmental pixel data. This function allows to map at the geographic level the biological adaptive space.
-To do so we use raster file from CHELSA dataset previosuly clipped for the current olive niche using QGIS. The selected raster are going to be stacked and transformed into a centered spatial grid (x,y) where each environmental variable is given by the average of each pixel.
-```
-library(raster)
-library("readxl")
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio2_current_masked.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio10_current_masked.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio11_current_masked.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio15_current_masked.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio18_current_masked.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Current_ENM_clipped_biova/bio19_current_masked.tif"))
-names(bio2) = 'bio2'
-names(bio10) = 'bio10'
-names(bio11) = 'bio11'
-names(bio15) = 'bio15'
-names(bio18) = 'bio18'
-names(bio19) = 'bio19'
-#stack the different raster file
-ras_current_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
-#print("current spatial grid")
-coord_r<-rasterToPoints(ras_current_var, spatial = TRUE)
-current_pixel<-data.frame(x = coordinates(coord_r)[,1], y=coordinates(coord_r)[,2], coord_r@data)
-```
-The same procedure for the future climatic scenario. The raster file derived from CHELSA MPI 2100 ssp585 scenario. Each raster was clipped using the current olive niche derived from ENM (biomod2)
-```
-library(raster)
-library("readxl")
-
-
-bio2<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio2_MPI_ssp585_2100_masked.tif"))
-bio10<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio10_MPI_ssp585_2100_masked.tif"))
-bio11<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio11_MPI_ssp585_2100_masked.tif"))
-bio15<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio15_MPI_ssp585_2100_masked.tif"))
-bio18<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio18_MPI_ssp585_2100_masked.tif"))
-bio19<- raster(paste("/storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/future_clim_2071_2100/MPI_ESM/ssp585/bio19_MPI_ssp585_2100_masked.tif"))
-names(bio2) = 'bio2'
-names(bio10) = 'bio10'
-names(bio11) = 'bio11'
-names(bio15) = 'bio15'
-names(bio18) = 'bio18'
-names(bio19) = 'bio19'
-#stack the different raster file
-ras_2100_var<-stack(c(bio2,bio10, bio11, bio15, bio18, bio19))
-#print("2100 spatial grid")
-coord_2100<-rasterToPoints(ras_2100_var, spatial = TRUE)
-pixel_2100<-data.frame(x = coordinates(coord_2100)[,1], y=coordinates(coord_2100)[,2], coord_2100@data)
-```
-Once the spatial grid for current and future climatic scenarios are uploaded we can apply the GF function to predict the current and future adaptive values and calcolate their distance (Genomic Offsets - GO).
-
-```
-# Genome vulnerability calculation
-library(tidyr)
-imp.var<- names(importance(gf))
-# Model current climatic projection
-current_pixel <- current_pixel %>% drop_na()
-current.gf <- cbind(current_pixel[,c("x", "y")],
-                    predict(gf,current_pixel[,imp.var]))
-# Model future projection overall the considered area
-pixel_2100 <- pixel_2100 %>% drop_na()
-gf_2100 <- cbind(pixel_2100[,c("x", "y")], 
-                 predict(gf, pixel_2100[,imp.var]))
-
-#calcolate distance between current and 2100 prediction
-temp <- vector("numeric", length = nrow(gf_2100))
-for (i in imp.var) {
-  temp <- temp + (gf_2100[,i]-current.gf[,i])^2
-}
-GenVuln <- cbind(current_pixel[,c("x", "y")], sqrt(temp))
-colnames(GenVuln)[3] <- "vulnerability"
-write.table(GenVuln, "GO_gradientForest.txt")
-```
-The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
-
-![image](https://github.com/user-attachments/assets/701e6fcd-bb5f-4194-a335-c3ae043dc5f7)
-
-
-
-
-In this temptaive I'm trying to map the spatial pixel grid using ggplot without much success. The QGIS output is better
-
-## plotting
-library(tidyverse)
-library(rnaturalearth)
-plot(GenVuln[, c("x", "y")], col= vulnerability)
-
-library(maps)
-library(mapdata)
-library(mapproj)
-mapdata<-map_data("world", region =c("France", "Spain"))
-a<-ggplot(data = GenVuln, aes(x=x, y=y))+
- geom_polygon(mapdata, mapping = aes(x=long, y=lat, group = group))+
-  coord_map('polyconic')+
-  geom_point(aes(color = vulnerability))+
-scale_color_gradient2(low = "blue",high = "red", space = "Lab" )
- 
-
-
-
-
-#transform the spatial grid into raster file
-#create the extent and raster
-e <- extent(GenVuln[,(1:2)])
-r <- raster(e, ncol= 43200, nrow=20880 , crs= "+proj=longlat +datum=WGS84")
-#fill the empty raster with the value og GenVuln column 3
-
-raster_GO <- rasterize(GenVuln[,1:2], r, GenVuln[,3])
-writeRaster(raster_GO, 'Genomic_offset_GF.tif')
-
-#create a custom pallate
-rgb.pal <- colorRampPalette(c("snow1","snow2","light blue","blue","dark blue", "orange","red"), space = "rgb")
-plot(raster_GO, col=rgb.pal(200), xlab="Lon", ylab="Lat", main=paste("Horizontal Reflectivity"),
-     legend.args=list(text=paste0("zhh [db]"), side=4, font=2, line=2.5, cex=0.8))
-
-```
-
-
-
-
-
-Subsequently we are going to use the GF function to estimate the adaptive value for each environmental data point.
-```
-library(tidyr)
-newmap_pts <- map_pts %>% drop_na()
-imp.var<- names(importance(gf))
-Trns_grid<-cbind(newmap_pts[, c("x", "y")], predict(gf, newmap_pts[, imp.var]))
-```
-The resulted data table is a list of grid cells with specific lat/long values and the estimate genetic adaptive value for each environmental variable.
-The multi-dimentinal adaptive space can be efficiently plotted using a PCA. The resuts provides a biplot for each cell grid colored follwing a palette scale. The same color palette will be used to plot the cell grid in lat/long space.
-```
-#color PCs
-PCs<- prcomp(Trns_grid[, imp.var])
-a1<- PCs$x[,1]
-a2<- PCs$x[,2]
-a3<- PCs$x[,3]
-r<- a1+a2
-g<- -a2
-b<- a3+a2-a1
-r<- (r-min(r))/(max(r)-min(r))*255
-g<- (g-min(g))/(max(g)-min(g))*255
-b<- (b-min(b))/(max(b)-min(b))*255
-
-#color biplot
-
-nvs <- dim(PCs$rotation)[1]
-vec<-c("bio15", "bio12", "bio14", "bio19", "bio1",  "bio2", "bio8",  "bio6",  "bio4", "bio9")
-lv <- length(vec)
-vind <- rownames(PCs$rotation) %in% vec
-scal <- 5
-xrng <- range(PCs$x[, 1], PCs$rotation[, 1]/scal) 
-yrng <- range(PCs$x[, 2], PCs$rotation[, 2]/scal)
-plot((PCs$x[, 1:2]), xlim = xrng, ylim = yrng, pch = ".", cex = 4, col = rgb(r, g, b, max = 255), asp = 1)
-points(PCs$rotation[!vind, 1:2]/scal, pch = "+")
-arrows(rep(0, lv), rep(0, lv), PCs$rotation[vec,1]/scal, PCs$rotation[vec, 2]/scal, length = 0.0625)
-jit <- 0.0015
-text(PCs$rotation[vec, 1]/scal + jit * sign(PCs$rotation[vec,1]), PCs$rotation[vec, 2]/scal + jit * sign(PCs$rotation[vec, 2]), labels = vec)
-                                                         
-  
-
-#plot grid
-plot(Trns_grid[, c("x", "y")], pch = ".", cex = 3, col= rgb(r,g,b,max=255))
-```
-
-![adaptive_PCA_space](https://github.com/user-attachments/assets/bc91fde3-600a-4eee-97a1-d11ab677eb2f)
-
-![adaptive_geo_space](https://github.com/user-attachments/assets/fe373f9c-8c3a-4b74-af5c-3592949d9ffa)
