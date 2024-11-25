@@ -518,10 +518,6 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
   return(Proj_pres = Proj_pres)
 }
 ```
->scale enviromental variable and recover scaling factor
-
-```
-
 
 Raster files dowloaded from CHELSA were clipped using Environmental niche modelling masked generated with the package bioclim2. The raster preparation was conducted in QGIS
 ```
