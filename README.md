@@ -651,3 +651,39 @@ write.table(dist_data, file = "cultivar_mismatch_scaling1.csv", append = FALSE, 
 cultivar_offset<- read.csv("cultivar_mismatch_scaling1.csv")
 
 ```
+
+Among the cultivated population I selected two contrasting cultivars _F3_ from south France and _E19_ from south Spain. For this two genotypes the Euclidean distance was calcolated between the RDA coordinates from their GEA based predictions and the position of each environmental pixel in the RDA space. The results gives a rapresentation of the adaptive landscape of a specific cultivars base on the GEA QTL from wild genotypes.
+The final result was graphically presented using QGIS.
+
+```
+#Estimation cultivars adaptive landscape
+
+#load pixel data
+
+pixel<-read.csv("current_env_pixel.csv", sep = " ")
+pixel_env<- pixel%>% select(bio2, bio10, bio11, bio15, bio18, bio19)
+scaled_pixel <- scale(pixel_env, env_center[row.names(RDA_all_enriched$CCA$biplot)], env_scale[row.names(RDA_all_enriched$CCA$biplot)])
+scaled_pixel<-as.data.frame(scaled_pixel)
+
+
+
+scaled_pixel_LC <- predict(RDA_all_enriched, newdata=scaled_pixel, type="lc", scaling = "sites")
+
+plot(scaled_pixel_LC)
+
+TAB_pixel_LC<- data.frame(lat = pixel$y, long = pixel$x, scaled_pixel_LC[,1:2])
+#distace calculated for the genotype E19 with "wc" prediction of RDA1 = -0.13, RDA2 = 0.15
+TAB_pixel_LC$offset<-sqrt((-0.13 - TAB_pixel_LC$RDA1)^2 + (0.15 - TAB_pixel_LC$RDA2)^2)
+hist(TAB_pixel_LC$offset)
+#The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
+write.csv(TAB_pixel_LC, "E19_pixel_offset.csv", sep = " ")
+
+
+#distace calculated for the genotype F3 with "wc" prediction of RDA1 = -0.13, RDA2 = 0.15
+TAB_pixel_LC$offset<-sqrt((-0.1676 - TAB_pixel_LC$RDA1)^2 + (-0.1417 - TAB_pixel_LC$RDA2)^2)
+hist(TAB_pixel_LC$offset)
+#The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
+write.csv(TAB_pixel_LC, "F3_pixel_offset.csv", sep = " ")
+```
+![image](https://github.com/user-attachments/assets/54624bb9-dd75-4b9c-aaf5-3a8216585bdd)
+
