@@ -632,8 +632,7 @@ hh<-ggplot() +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
 hh
 ```
-
-![image](https://github.com/user-attachments/assets/f2ce3e4a-14df-4f5e-9f23-779ba46cd8e5)
+![image](https://github.com/user-attachments/assets/9f541476-180c-4a28-9764-ba3b311db657)
 
 
 Calculate the euclidean distance between cultivated and best cultivated
@@ -651,24 +650,4 @@ write.table(dist_data, file = "cultivar_mismatch_scaling1.csv", append = FALSE, 
 
 cultivar_offset<- read.csv("cultivar_mismatch_scaling1.csv")
 
-
 ```
-We used the new Cultivar offset variable and checked the correlation with the other bioclimatic and geographic variable. The file _cultivar_offset_ has been integrated with the climatic and geographic variable in excel
-
-```
-library(metan)
-df<-dist_data[,c("offset","bio2", "bio10", "bio11","bio15", "bio18", "bio19","lat","long")]
-cc<-corr_plot(df)
-cc
-
-
-model <-lm(offset~ bio11, data = cultivar_offset)
-summary(model)
-plot(cultivar_offset$bio11, cultivar_offset$offset)
-
-```
-
-![image](https://github.com/user-attachments/assets/6d966138-7f3b-48e6-9724-5af80de48b98)
-
-
-
