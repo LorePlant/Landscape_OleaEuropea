@@ -501,7 +501,7 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
   var_env_proj_pres <- as.data.frame(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]]))
   
   # Standardization of the environmental variables
-  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], env_center[row.names(RDA$CCA$biplot)], env_scale[row.names(RDA$CCA$biplot)]))
   
   # Prediction with RDA model and linear combinations
   if(method == "predict"){ 
