@@ -189,36 +189,7 @@ a
 ## Redundancy analysis
 
 Within the landscape genomic framework, Redundancy analysis (RDA) represent a useful tool that allows to dissect the the total genetic variance among the environment, geographic and demographic components. 
-In this first analysis I used RDA on the following linear model to see if we can detect specif environmental variables diverging Wild vs Admixed genotypes or geographic regions.
- $` Gen \sim Environment `$
 
->Data file preparation
-```
-#standardize bioclim variable
-data_wild<- read.csv("WILD_135.csv", header = TRUE)
-bio = data_wild[ ,11:24]
-Env <- scale(bio, center=TRUE, scale=TRUE)
-Env <- as.data.frame(Env)
-
-#combining geographic, Popstructure, environmental (scaled) variables
-Variables <- data.frame(data_wild$IDSample, data_wild$long, data_wild$lat, data_wild$group,data_wild$latitude_range, data_wild$PC1, data_wild$PC2, data_wild$PC3, data_wild$PC4, data_wild$PC5,  Env)
-names(Variables)[1]<- paste("geno")
-names(Variables)[2]<- paste("long")
-names(Variables)[3]<- paste("lat")
-names(Variables)[4]<- paste("group")
-names(Variables)[5]<- paste("latitude_range")
-names(Variables)[6]<- paste("PC1")
-names(Variables)[7]<- paste("PC2")
-names(Variables)[8]<- paste("PC3")
-names(Variables)[9]<- paste("PC4")
-names(Variables)[10]<- paste("PC5")
-
-RDAgeo_env <- rda(genoWild_MAF005 ~ bio2+bio10+bio11+	bio15	+ bio18 + bio19, Variables)
-
-sqrt(vif.cca(RDAgeo_env))
- ```
-
-To reduce collinearity, I want to check if the selected environmental variance have low VIF variance inflation factor
 
 ```
 RDAgeo_env <- rda(genotype ~ bio1+bio2+bio4+ bio5 + bio6+bio8	+ bio9 + bio10+bio11+ bio12 + bio14+	bio15	+ bio18 + bio19, Variables)
@@ -465,13 +436,23 @@ dev.off()
 
 ## Enriched RDA
 
-To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 163 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation (FDR, q<0.05). In this analysis, I did not include geography and population structure as covariates for two reasons: First, I aimed to observe the differentiation between wild and admixed genotypes. Second, the GEA SNPs used have already been identified with corrections for population structure and geography.
-
+To visualize the adaptive differentiation among genotypes, I conducted an additional Redundancy Analysis (RDA) using only the 163 previously identified GEA SNPs for the two seperate analysis for temperature and precipitation (FDR, q<0.05). 
 
 ```
 #partial redundancy analysis (RDA only with GEA QTL)
 geno_Wild_GEA<-genoWild_MAF005[which((rdadapt_temp$q.values<0.05)|(rdadapt_prec$q.values<0.05))]
 write.table(geno_Wild_GEA, "geno_Wild_GEA.txt") #save the new GEA genotype data
+
+#scaled variable
+data_wild<- read.csv("WILD_135.csv", header = TRUE)
+test_env <- data_wild%>% select(bio2, bio10, bio11, bio15, bio18, bio19)
+Env <- scale(test_env, center=TRUE, scale=TRUE)
+# Extract the centering values
+env_center <- attr(Env, "scaled:center")
+# Extract the scaling values
+env_scale <- attr(Env, "scaled:scale")
+#transform into dataset
+Env <- as.data.frame(Env)
 
 RDA_all_enriched<-rda(geno_Wild_GEA ~ bio2 + bio10 + bio11 + bio15	+ bio18 + bio19, Variables)
 summary(eigenvals(RDA_all_enriched, model = "constrained"))
@@ -495,7 +476,7 @@ loading_geno_all_enriched_region<-ggplot() +
   geom_segment(data = TAB_var, aes(xend=RDA1*5, yend=RDA2*5, x=0, y=0), colour="black", size=0.15, linetype=1, arrow=arrow(length = unit(0.02, "npc"))) +
   geom_label_repel(data = TAB_var, aes(x=5*RDA1, y=5*RDA2, label = row.names(TAB_var)), size = 2.8, family = "Times") +
   xlab("RDA 1: 28%") + ylab("RDA 2: 24%") +
-  guides(color=guide_legend(title="Locus type")) +
+  guides(color=guide_legend(title="Latitude gradient")) +
   theme_bw(base_size = 11, base_family = "Times") +
   theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
 loading_geno_all_enriched_region
@@ -540,15 +521,9 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
 >scale enviromental variable and recover scaling factor
 
 ```
-library('dplyr')
 
-var = data_wild %>% dplyr::select('bio2','bio10', 'bio11', 'bio15', 'bio18', 'bio19')
-VAR <- scale(var, center=TRUE, scale=TRUE)
-scale_var <- attr(VAR, 'scaled:scale')
-center_var <- attr(VAR, 'scaled:center')
-```
 
-Enter the raster file for the specific bioclimatic variable for current climatic situation
+Raster files dowloaded from CHELSA were clipped using Environmental niche modelling masked generated with the package bioclim2. The raster preparation was conducted in QGIS
 ```
 # ras temperature
 library(raster)
@@ -577,7 +552,7 @@ Predict tha adaptive index for each pixel grid
 ## Function to predict the adaptive index across the landscape
 source("./src/adaptive_index.R")
 
-res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "predict", scale_env = scale_var, center_env = center_var)
+res_RDA_all_proj_current <- adaptive_index(RDA = RDA_all_enriched, K = 2, env_pres = ras_current_var, range = range, method = "predict", scale_env = env_scale, center_env = env_center)
 projection<- stack(c(res_RDA_all_proj_current$RDA1, res_RDA_all_proj_current$RDA2))
 plot(projection)
   writeRaster(projection,'Wild_adaptive_landscape.tif',options=c('TFW=YES'))#save raster for QGIS
@@ -589,41 +564,53 @@ plot(projection)
 
 # estimation of cultivars offsets
 
-The previously identified GEA from the wild dataset represent QTLs involved in adaptation in the western Mediterrenean. Can we use this information to inform cultivar adaptive values? To answer this question we can enter in the RDA model the domesticated genotype info filtered for the wild GEA QTL. The idea is to plot in the RDA space the position of cultivated genotypes based on their GEA information and the "best suited" genotypes using the enviromental information from the sample location. The Euclidean distance in the RDA adaptive space between this two point will represent the cultivar offset.
+The previously identified GEA from the wild dataset represent QTLs involved in adaptation in the western Mediterrenean. Can we use this information to inform cultivar adaptive values? To answer this question we can enter in the RDA model the domesticated genotype info filtered for the wild GEA QTL. The idea is to plot in the RDA space the position of cultivated genotypes based on their GEA information, as weel as, the "best suited" genotypes using the enviromental information from the sample location. The Euclidean distance in the RDA adaptive space between this two point will represent the cultivar offset.
+
+As cultivated genotypes I selected nine different genotype representative of ç different population selecting the ones with higher _hybrid index_ and lower _interclass heterozygosity
+_.
 
 >prepare dataset with cultivated genotype and GEA QTLs
 
 ```
 
 #filter cultivar individuals
-cul_list<-read.table("P2_individual_list.txt", header = F)
+cul_list<-read.table("Dom_9_list.txt", header = F)
 genoCul <-  geno359[rownames(geno359)%in% cul_list$V1, ]
 geno_Cul_GEA <- genoCul[, colnames(genoCul) %in% colnames(geno_Wild_GEA)]
 
 ```
-
 Predict the RDA scores fro the domesticated genotypes
 ```
-fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno_Cul_GEA, type="wa", scaling = 2)
+fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno_Cul_GEA, type="wa", scaling="sites")
 
-TAB_gen135 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites", 1:3))
+
+
+ordiplot(fitted_dom_RDAscores)
+
+TAB_gen135 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites", choices=c(1:2), scaling = "sites"))
 TAB_gen135$type <- "wild"
-TAB_gen61 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:3])
+TAB_gen61 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:2])
 TAB_gen61$type <- "cultivated"
 wild_cult <- rbind(TAB_gen135, TAB_gen61)
 
-TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1:3), display="bp"))
+TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1:2), display="bp"))
 
 ```
 Prediction of cultivated best fit
 ```
-data_cul<- read.csv("Dom_61.csv", header = TRUE)
+data_cul<- read.csv("Dom_9.csv", header = TRUE)
 env_c = data_cul[ ,2:15]
-Env_cul <- data.frame(row.names= data_cul[,1] ,scale(env_c, center=TRUE, scale=TRUE))
+enc_c <- env_c%>% select(bio2, bio10, bio11, bio15, bio18, bio19)
 
+#scale environmental variable using the scaling factor from 135 wild
+var_env_proj_RDA <- scale(enc_c, env_center[row.names(RDA_all_enriched$CCA$biplot)], env_scale[row.names(RDA_all_enriched$CCA$biplot)])
+scaled_env<-as.data.frame(var_env_proj_RDA)
 
-fitted_dom_Envscores <- predict(RDA_all_enriched, newdata=Env_cul, type="lc", scaling = 2)
-TAB_best_cul<- data.frame(geno = row.names(fitted_dom_Envscores), fitted_dom_Envscores[,1:3])
+fitted_dom_Envscores <- predict(RDA_all_enriched, newdata=scaled_env, type="lc", scaling = "sites")
+
+plot(fitted_dom_Envscores)
+
+TAB_best_cul<- data.frame(geno = data_cul$IDSample, fitted_dom_Envscores[,1:2])
 
 TAB_best_cul$type <- "best cultivated"
 
@@ -659,23 +646,33 @@ Calculate the euclidean distance between cultivated and best cultivated
 dist_data<-merge(TAB_gen61,TAB_best_cul, by = "geno" )
 dist_data$offset<-sqrt((dist_data$RDA1.x - dist_data$RDA1.y)^2 + (dist_data$RDA2.x - dist_data$RDA2.y)^2)
 hist(dist_data$offset)
-write.table(dist_data, file = "cultivar_mismatch.csv", append = FALSE, quote = TRUE, sep = " ",
+colnames(dist_data)[colnames(dist_data) == "geno"] <- "IDSample"
+dist_data<-left_join(dist_data, data_359, by ="IDSample")
+write.table(dist_data, file = "cultivar_mismatch_scaling1.csv", append = FALSE, quote = TRUE, sep = " ",
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
+
+cultivar_offset<- read.csv("cultivar_mismatch_scaling1.csv")
+
+
 ```
 We used the new Cultivar offset variable and checked the correlation with the other bioclimatic and geographic variable. The file _cultivar_offset_ has been integrated with the climatic and geographic variable in excel
 
 ```
-cultivar_offset<- read.csv("cultivar_mismatch.csv")
-
 library(metan)
-df<-cultivar_offset[,c("offset","bio2", "bio10", "bio11","bio15", "bio18", "bio19", "long", "lat")]
+df<-dist_data[,c("offset","bio2", "bio10", "bio11","bio15", "bio18", "bio19","lat","long")]
 cc<-corr_plot(df)
 cc
+
+
+model <-lm(offset~ bio11, data = cultivar_offset)
+summary(model)
+plot(cultivar_offset$bio11, cultivar_offset$offset)
+
 ```
 
-![image](https://github.com/user-attachments/assets/5a7ebd67-6be1-471a-9ba9-6e5006a0a540)
+![image](https://github.com/user-attachments/assets/6d966138-7f3b-48e6-9724-5af80de48b98)
 
-The results show a significant correlation with most climatic and geographic variables. Our interpretation suggests that higher offsets are present at lower latitudes, particularly in southern Spain, where winter temperatures are higher, precipitation seasonality is more pronounced, and summer precipitation is scarcer.
+
 
