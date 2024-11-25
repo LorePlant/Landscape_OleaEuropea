@@ -501,11 +501,14 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
   var_env_proj_pres <- as.data.frame(rasterToPoints(env_pres[[row.names(RDA$CCA$biplot)]]))
   
   # Standardization of the environmental variables
-  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], env_center[row.names(RDA$CCA$biplot)], env_scale[row.names(RDA$CCA$biplot)]))
+  var_env_proj_RDA <- as.data.frame(scale(var_env_proj_pres[,-c(1,2)], center_env[row.names(RDA$CCA$biplot)], scale_env[row.names(RDA$CCA$biplot)]))
+  
+  # Initialize the output list
+  Proj_pres <- list()
   
   # Prediction with RDA model and linear combinations
   if(method == "predict"){ 
-    pred <- predict(RDA, var_env_proj_RDA[,names(RDA$CCA$biplot[,i])], type = "lc", scaling =2)
+    pred <- predict(RDA, var_env_proj_RDA, type = "lc")
     for(i in 1:K){
       ras_pres <- rasterFromXYZ(data.frame(var_env_proj_pres[,c(1,2)], Z = as.vector(pred[,i])), crs = crs(env_pres))
       names(ras_pres) <- paste0("RDA_pres_", as.character(i))
@@ -513,10 +516,6 @@ adaptive_index <- function(RDA, K, env_pres, range = NULL, method = "loadings", 
       names(Proj_pres)[i] <- paste0("RDA", as.character(i))
     }
   }
-  
-  # Returning projections for current climates for each RDA axis
-  return(Proj_pres = Proj_pres)
-}
 ```
 
 Raster files dowloaded from CHELSA were clipped using Environmental niche modelling masked generated with the package bioclim2. The raster preparation was conducted in QGIS
