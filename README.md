@@ -107,6 +107,83 @@ genoWild_MAF005 <- genoWild[,-which(freq_mean>=0.95 | freq_mean<=0.05)]
 write.table(genoWild_MAF005, "genoWild_MAF005_imputated.txt")
 genoWild_MAF005<- read.table("genoWild_MAF005_imputated.txt", header = T)
 ```
+>prepare datafile with standardized environmental variables
+
+```
+# Wild Environment datafile
+
+#standardize bioclim variable
+data_wild<- read.csv("WILD_135.csv", header = TRUE)
+test_env <- data_wild%>% select(long, lat, bio2, bio10, bio11, bio15, bio18, bio19)
+Env <- scale(test_env, center=TRUE, scale=TRUE)
+# Extract the centering values
+env_center <- attr(Env, "scaled:center") #mean of each variable
+# Extract the scaling values
+env_scale <- attr(Env, "scaled:scale") #standard deviation of each variable
+#transform into dataset
+Env <- as.data.frame(Env)
+
+
+#combining geographic, Popstructure, environmental (scaled) variables
+Variables <- data.frame(data_wild$IDSample, data_wild$group,data_wild$latitude_range, Env)
+names(Variables)[1]<- paste("geno")
+names(Variables)[2]<- paste("group")
+names(Variables)[3]<- paste("latitude_range")
+```
+## Population structure analysis of 135 Wild
+To asses the population structure of the 135 wild we used a Principal component analysis, searching for potential differentiation by countries or latitude gradient.
+```
+## population structure for 135 WILD
+library(FactoMineR)
+library(factoextra)
+
+res.pca<-PCA(genoWild_MAF005, scale.unit = TRUE, ncp = 5, graph = TRUE)
+fviz_eig(res.pca, addlabels = TRUE, ylim = c(0, 50))#  scree plot
+# Create a data frame for PCA results
+library(tibble)
+ind <- get_pca_ind(res.pca)
+pca_data <- as.data.frame(ind$coord)
+eig.val <- get_eigenvalue(res.pca) #selected 5 PCs
+# Create a data frame for PCA results
+ind135 <- get_pca_ind(res.pca)
+ind135
+pca_data135 <- as.data.frame(ind135$coord)
+pca_data135<- rownames_to_column(pca_data135, var = "IDSample")
+PCA_wild<-left_join(pca_data135, data_wild, by ="IDSample")
+
+#regions
+qq<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = PCA_wild, aes(x=Dim.1, y=Dim.2, colour = regions), size = 2.5) +
+  scale_color_manual(values = c("blue", "darkgreen","purple", "darkorange")) +
+  xlab("PC1: 4.2%") + ylab("PC2: 2.5%") +
+  guides(color=guide_legend(title="Group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+qq
+
+#latitude gradient
+ee<-ggplot() +
+  geom_hline(yintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_vline(xintercept=0, linetype="dashed", color = gray(.80), size=0.6) +
+  geom_point(data = PCA_wild, aes(x=Dim.1, y=Dim.2, colour = lat), size = 2.5) +
+  #scale_color_manual(values = c("darkgreen","red", "darkorange")) +
+  scale_color_viridis_c(option = "D", name = "Latitude")+
+  xlab("PC1: 4.2%") + ylab("PC2: 2.5%") +
+  #guides(color=guide_legend(title="Group")) +
+  theme_bw(base_size = 11, base_family = "Times") +
+  theme(panel.background = element_blank(), legend.background = element_blank(), panel.grid = element_blank(), plot.background = element_blank(), legend.text=element_text(size=rel(.8)), strip.text = element_text(size=11))
+ee
+library(ggpubr)
+ggarrange(qq,ee,nrow = 1 , ncol = 2)
+
+library(metan)
+dff<-PCA_wild[,c("Dim.1","bio2", "bio10", "bio11","bio15", "bio18", "bio19", "long", "lat")]
+a<-corr_plot(dff)
+a
+```
+![image](https://github.com/user-attachments/assets/32292952-f935-4d53-bfec-abeb11299bde)
 
 
 ## Redundancy analysis
