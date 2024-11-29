@@ -704,11 +704,18 @@ geno_Cul_GEA <- genoCul[, colnames(genoCul) %in% colnames(geno_Wild_GEA)]
 Predict the RDA scores fro the domesticated genotypes
 ```
 fitted_dom_RDAscores <- predict(RDA_all_enriched, newdata=geno_Cul_GEA, type="wa", scaling="sites")
-
-
-
 ordiplot(fitted_dom_RDAscores)
 
+```
+The predicted result will have RDA coordinate of each genotypes estimated based on their GEA QTL
+
+|           |	RDA1	|RDA2	|RDA3|
+---------------------------------------------------
+|OES_E12_01|	-0.20984656	|-0.09980014	|0.2544077|
+|OES_E13_14|	-0.04732325	|-0.05398478	|0.2679533|
+
+Then this information will be list together with the wild dataset
+```
 TAB_gen135 <- data.frame(geno = row.names(scores(RDA_all_enriched , display = "sites")), scores(RDA_all_enriched, display = "sites", choices=c(1:2), scaling = "sites"))
 TAB_gen135$type <- "wild"
 TAB_gen61 <- data.frame(geno = row.names(fitted_dom_RDAscores), fitted_dom_RDAscores[,1:2])
@@ -718,7 +725,7 @@ wild_cult <- rbind(TAB_gen135, TAB_gen61)
 TAB_var <- as.data.frame(scores(RDA_all_enriched, choices=c(1:2), display="bp"))
 
 ```
-Prediction of cultivated best fit
+Prediction of cultivated best fit. In this part is important to scale the cultivars environmental variable with the same scaling factor used in the Wild population. _env_center_ and _env_scale_ represent the mean and standard deviation calcolated on the 135 wild population for each bioclimatic variable. 
 ```
 data_cul<- read.csv("Dom_9.csv", header = TRUE)
 env_c = data_cul[ ,2:15]
@@ -760,12 +767,58 @@ hh
 ```
 ![image](https://github.com/user-attachments/assets/9f541476-180c-4a28-9764-ba3b311db657)
 
+The same result can be represented in the 3D space
 
-Calculate the euclidean distance between cultivated and best cultivated
+```
+hh_3d <- plot_ly() %>%
+  # Add points from wild_cult_best
+  add_trace(
+    data = wild_cult_best,
+    x = ~RDA1,
+    y = ~RDA2,
+    z = ~RDA3, # Third dimension
+    type = 'scatter3d',
+    mode = 'markers',
+    color = ~type,
+    colors = c('#56B4E9', '#E69F00', 'grey48'),
+    symbol = ~type,
+    symbols = c('circle', 'triangle-up', 'cross'),
+    marker = list(size = 5)
+  ) %>%
+  
+  # Add labels from TAB_var
+  add_trace(
+    data = TAB_var,
+    x = ~RDA1,
+    y = ~RDA2,
+    z = ~RDA3,
+    type = 'scatter3d',
+    mode = 'text',
+    text = ~row.names(TAB_var),
+    textposition = 'top middle',
+    textfont = list(size = 10, family = "Times", color = "black"),
+    showlegend = FALSE
+  ) %>%
+  # Add axis labels
+  layout(
+    scene = list(
+      xaxis = list(title = "RDA 1: 27%"),
+      yaxis = list(title = "RDA 2: 24%"),
+      zaxis = list(title = "RDA 3: 20%"),
+      aspectmode = 'auto'
+    ),
+    legend = list(title = list(text = "Type"))
+  )
+
+hh_3d
+```
+![image](https://github.com/user-attachments/assets/ca49e4a2-93b6-4d91-9476-87f8445ca8d2)
+
+To estimate the Cultivar Offset we can calculate the euclidean distance between cultivated and best cultivated. To maximazed the variance explained by the model, the euclidean distance will be calcolated on 3 RDA axis.
 
 ```
 dist_data<-merge(TAB_gen61,TAB_best_cul, by = "geno" )
-dist_data$offset<-sqrt((dist_data$RDA1.x - dist_data$RDA1.y)^2 + (dist_data$RDA2.x - dist_data$RDA2.y)^2)
+dist_data$offset<-sqrt((dist_data$RDA1.x - dist_data$RDA1.y)^2 + (dist_data$RDA2.x - dist_data$RDA2.y)^2 + (dist_data$RDA3.x - dist_data$RDA3.y)^2)
 hist(dist_data$offset)
 colnames(dist_data)[colnames(dist_data) == "geno"] <- "IDSample"
 dist_data<-left_join(dist_data, data_359, by ="IDSample")
@@ -775,10 +828,9 @@ write.table(dist_data, file = "cultivar_mismatch_scaling1.csv", append = FALSE, 
             fileEncoding = "")
 
 cultivar_offset<- read.csv("cultivar_mismatch_scaling1.csv")
-
 ```
 
-Among the cultivated population I selected two contrasting cultivars _F3_ from south France and _E19_ from south Spain. For this two genotypes the Euclidean distance was calcolated between the RDA coordinates from their GEA based predictions and the position of each environmental pixel in the RDA space. The results gives a rapresentation of the adaptive landscape of a specific cultivars base on the GEA QTL from wild genotypes.
+Among the cultivated population I selected two contrasting cultivars _F3_ from south France and _E19_ from south Spain. For this two genotypes the Euclidean distance was calcolated on three dimentions between the RDA coordinates from their GEA based predictions and the position of each environmental pixel in the RDA space. The results gives a rapresentation of the adaptive landscape of a specific cultivars base on the GEA QTL from wild genotypes.
 The final result was graphically presented using QGIS.
 
 ```
@@ -799,17 +851,17 @@ plot(scaled_pixel_LC)
 
 TAB_pixel_LC<- data.frame(lat = pixel$y, long = pixel$x, scaled_pixel_LC[,1:2])
 #distace calculated for the genotype E19 with "wc" prediction of RDA1 = -0.13, RDA2 = 0.15
-TAB_pixel_LC$offset<-sqrt((-0.13 - TAB_pixel_LC$RDA1)^2 + (0.15 - TAB_pixel_LC$RDA2)^2)
+TAB_pixel_LC$offset<-sqrt((-0.13 - TAB_pixel_LC$RDA1)^2 + (0.15 - TAB_pixel_LC$RDA2)^2+(0.066 - TAB_pixel_LC$RDA3)^2)
 hist(TAB_pixel_LC$offset)
 #The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
-write.csv(TAB_pixel_LC, "E19_pixel_offset.csv", sep = " ")
+write.csv(TAB_pixel_LC, "E19_pixel_offset_3RDA.csv", sep = " ")
 
 
 #distace calculated for the genotype F3 with "wc" prediction of RDA1 = -0.13, RDA2 = 0.15
-TAB_pixel_LC$offset<-sqrt((-0.1676 - TAB_pixel_LC$RDA1)^2 + (-0.1417 - TAB_pixel_LC$RDA2)^2)
+TAB_pixel_LC$offset<-sqrt((-0.167 - TAB_pixel_LC$RDA1)^2 + (-0.142 - TAB_pixel_LC$RDA2)^2+(0.41 - TAB_pixel_LC$RDA3)^2)
 hist(TAB_pixel_LC$offset)
 #The output table was uploaded as vector in QGIS andthen interpolation (IDW method) was used to plot the raster file. The obtained raster was ultilmately standardized using _zscore_.
-write.csv(TAB_pixel_LC, "F3_pixel_offset.csv", sep = " ")
+write.csv(TAB_pixel_LC, "F3_pixel_offset_3D.csv", sep = " ")
 ```
 ![image](https://github.com/user-attachments/assets/54624bb9-dd75-4b9c-aaf5-3a8216585bdd)
 
