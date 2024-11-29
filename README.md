@@ -710,7 +710,7 @@ ordiplot(fitted_dom_RDAscores)
 The predicted result will have RDA coordinate of each genotypes estimated based on their GEA QTL
 
 |           |	RDA1	|RDA2	|RDA3|
------------|--------|-----|-------------------------|
+|-----------|--------|-----|-------------------------|
 |OES_E12_01|	-0.20984656	|-0.09980014	|0.2544077|
 |OES_E13_14|	-0.04732325	|-0.05398478	|0.2679533|
 
