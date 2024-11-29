@@ -487,6 +487,39 @@ dev.off()
 ```
 ![image](https://github.com/user-attachments/assets/059b8d3b-87ff-442e-8746-c185d38afde6)
 
+The same RDA plot can be represented in 3D using the following code
+
+```
+# Convert to 3D using plotly
+loading_geno_all_enriched_region_3d <- plot_ly() %>%
+  # Add points for Geno
+  add_trace(
+    data = Geno,
+    x = ~RDA1,
+    y = ~RDA2,
+    z = ~RDA3, # Third dimension for points
+    color = ~latitude_range,
+    colors = c("darkgreen", "darkred", "darkorange"),
+    type = 'scatter3d',
+    mode = 'markers',
+    marker = list(size = 4)
+  ) %>%
+   
+  # Add axis labels
+  layout(
+    scene = list(
+      xaxis = list(title = "RDA 1: 27%"),
+      yaxis = list(title = "RDA 2: 24%"),
+      zaxis = list(title = "RDA 3: 20%")
+    ),
+    legend = list(title = list(text = "Latitude Gradient"))
+  )
+
+loading_geno_all_enriched_region_3d
+```
+![image](https://github.com/user-attachments/assets/28fd16e1-edf3-4250-b29a-32c54d25d372)
+(file:///C:/Users/rocchetti/Desktop/3d.html)
+
 
 # Adaptive index projection
 Adaptive indeix function Capblach.
