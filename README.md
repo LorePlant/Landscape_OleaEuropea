@@ -589,6 +589,100 @@ plot(projection)
 ![image](https://github.com/user-attachments/assets/b98fd2af-48f6-430e-bfb6-d7e16ca10702)
 ![image](https://github.com/user-attachments/assets/8b694ec0-5e89-4b83-9d4a-d3e013e1000e)
 
+The same adaptive landscape can be estimated with the predict function of RDA vegan package. The predicted pixel value can then be plotted using R with a customized RGB palette.
+
+```
+#create spatial grid
+
+pixel <- as.data.frame(rasterToPoints(ras_current_var[[row.names(RDA_all_enriched$CCA$biplot)]]))
+pixel_env<- pixel%>% dplyr::select(bio2, bio10, bio11, bio15, bio18, bio19)
+scaled_pixel <- scale(pixel_env, env_center[row.names(RDA_all_enriched$CCA$biplot)], env_scale[row.names(RDA_all_enriched$CCA$biplot)])
+scaled_pixel<-as.data.frame(scaled_pixel)
+scaled_pixel_LC <- predict(RDA_all_enriched, newdata=scaled_pixel, type="lc", scaling = "sites")
+TAB_pixel_LC<- data.frame(lat = pixel$y, long = pixel$x, scaled_pixel_LC[,1:3])
+
+#create color palette
+a1 <- TAB_pixel_LC$RDA1
+a2 <- TAB_pixel_LC$RDA2
+a3 <- TAB_pixel_LC$RDA3
+
+
+# Colorblind-friendly RGB calculation based on the Color Universal Design (CUD) palette
+# CUD palette uses blue, orange, green, purple, and red tones
+r <- (a1 + 1) * 30  # Linear scaling of RDA1 with an offset for better contrast
+g <- abs(a2) * 60  # Scaling absolute RDA2 with a factor for visible green shades
+b <- (a3^2 + a1^2)^(1/2) * 40  # Euclidean distance of RDA1 and RDA3 for blue intensity
+
+# Normalize RGB values to range 0-255
+r <- (r - min(r)) / (max(r) - min(r)) * 255
+g <- (g - min(g)) / (max(g) - min(g)) * 255
+b <- (b - min(b)) / (max(b) - min(b)) * 255
+
+
+
+# Combine into hexadecimal color
+TAB_pixel_LC$color <- rgb(r, g, b, maxColorValue = 255)
+
+# Update ggplot to use custom RGB colors
+pp <- ggplot() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = gray(0.80), size = 0.6) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = gray(0.80), size = 0.6) +
+  geom_point(data = TAB_pixel_LC, aes(x = RDA1, y = RDA2), color = TAB_pixel_LC$color) +  # Use custom colors
+  geom_segment(data = TAB_var, aes(xend = RDA1, yend = RDA2, x = 0, y = 0), 
+               colour = "black", size = 0.15, linetype = 1, 
+               arrow = arrow(length = unit(0.20, "cm"), type = "closed")) +
+  geom_label_repel(data = TAB_var, aes(x = RDA1, y = RDA2, label = row.names(TAB_var)), 
+                   size = 2, family = "Times") +
+  xlab("RDA 1: 28%") + 
+  ylab("RDA 2: 24%") +
+  theme_bw(base_size = 9, base_family = "Times") +
+  theme(panel.background = element_blank(), 
+        legend.background = element_blank(), 
+        panel.grid = element_blank(), 
+        plot.background = element_blank(), 
+        legend.text = element_text(size = rel(0.8)), 
+        strip.text = element_text(size = 9))
+
+jpeg(file = "C:/Users/rocchetti/Desktop/running RDA GO/adaptive_biplot.jpeg",width = 7, height = 5, units = "cm", res = 800)
+pp
+dev.off()
+
+## plot in geographic map
+
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
+# Load geographic boundaries of France, Spain, Morocco, Portugal, and Algeria
+countries <- ne_countries(scale = "medium", country = c("France", "Spain", "Morocco", "Portugal", "Algeria"), returnclass = "sf")
+
+# Remove French Guiana and Atlantic French territories
+countries <- countries[!(countries$geounit %in% c("French Guiana", "Guadeloupe", "Martinique", "Saint Pierre and Miquelon", 
+                                                  "Reunion", "Mayotte", "New Caledonia", "French Polynesia", 
+                                                  "Wallis and Futuna", "Saint Barthelemy", "Saint Martin")), ]
+
+# Convert TAB_pixel_LC to an sf object
+TAB_pixel_LC_sf <- st_as_sf(TAB_pixel_LC, coords = c("long", "lat"), crs = 4326)  # Assumes 'longitude' and 'latitude' columns exist
+# Create the map
+map <- ggplot(data = countries) +
+  geom_sf(fill = "gray", color = "black") +  # Countries' borders
+  geom_sf(data = TAB_pixel_LC_sf, aes(color = color), size = 0.05, show.legend = FALSE) +  # Points with custom colors
+  scale_color_identity() +  # Use exact colors from the 'color' column
+  coord_sf(xlim = c(-15, 15), ylim = c(28, 52), expand = FALSE) +  # Set geographic limits
+  theme_minimal() +
+  labs(title = "Adaptive Landscape") +
+  theme(panel.background = element_blank())
+       
+jpeg(file = "C:/Users/rocchetti/Desktop/running RDA GO/adaptive_landscape_rgb.jpeg",width = 18, height = 14, units = "cm", res = 800)
+map
+dev.off()
+
+# Display the map
+print(map)
+```
+![image](https://github.com/user-attachments/assets/f5d3a909-0c60-49f3-b6fe-e93bace3ebf3)
+![image](https://github.com/user-attachments/assets/f677b619-7b02-46d9-874b-53798a9fac9e)
+
 
 # estimation of cultivars offsets
 
