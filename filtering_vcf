@@ -1,0 +1,14 @@
+Using vcftools filter out:
+- INDELs (--remove-indels) 
+---max-missing 0.90 - #we can also try with 0.5 and see how it goes) 
+- sites that have a minor allele count of less than 3 (--mac 3) #This is relative to genotypes, so it has to be called in at least 1 homozygote and 1 heterozygote or 3 heterozygotes. 
+
+In addition:
+--minDP 3 This command will recode genotypes that have less than 3 reads - see Wang et al., 2020 (https://jasbsci.biomedcentral.com/articles/10.1186/s40104-019-0407-9)for minimum depth criteria before imputing GBS datafiles.
+--maf 0.05 filter out sites with MAF lower than 5%
+
+#sites filtering
+vcftools --vcf WD_CV_Lec24.vcf --remove-indels --max-missing 0.90 --mac 3 --minDP 3 --remove-filtered-geno LowQual --recode --recode-INFO-all --out WD_CV_Lec24_missing90.vcf
+
+#check individuals missingness
+vcftools --vcf WD_CV_Lec24.vcf --missing-indv --out missingness
