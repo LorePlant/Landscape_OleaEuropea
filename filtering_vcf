@@ -1,14 +1,19 @@
-Using vcftools filter out:
-- INDELs (--remove-indels) 
----max-missing 0.90 - #we can also try with 0.5 and see how it goes) 
-- sites that have a minor allele count of less than 3 (--mac 3) #This is relative to genotypes, so it has to be called in at least 1 homozygote and 1 heterozygote or 3 heterozygotes. 
 
-In addition:
---minDP 3 This command will recode genotypes that have less than 3 reads - see Wang et al., 2020 (https://jasbsci.biomedcentral.com/articles/10.1186/s40104-019-0407-9)for minimum depth criteria before imputing GBS datafiles.
+# Filtering criteria
 
+--remove-indels: Removes all indels, keeping only SNPs.
+--minDP 8: Filters out sites with less than 8 reads of depth.
+--max-meanDP 400: Excludes sites where the mean depth exceeds 400.
+--minQ 200: Excludes SNPs with a quality score below 200.
+--max-alleles 2 and --min-alleles 2: Ensures that only biallelic sites are kept.
+--max-missing 0.90 \
+--het-threshold 0.85 \
+--recode: Outputs a filtered VCF file.
+--recode-INFO-all: Retains all INFO field data in the output VCF file.
+--out output_file: Specifies the prefix for the output files.
 
 #sites filtering
-vcftools --vcf WD_CV_Lec24.vcf --remove-indels --mac 3 --minDP 3 --remove-filtered-geno LowQual --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
 
+vcftools --vcf WD_CV_Lec24.vcf --remove-indels --minDP 8 --max-meanDP 400 --minQ 200  --max-alleles 2 --min-alleles 2 --max-missing 0.90  --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
 #check individuals missingness
 vcftools --vcf WD_CV_Lec24.vcf --missing-indv --out missingness
