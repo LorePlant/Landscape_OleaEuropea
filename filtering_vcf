@@ -5,10 +5,10 @@ Using vcftools filter out:
 
 In addition:
 --minDP 3 This command will recode genotypes that have less than 3 reads - see Wang et al., 2020 (https://jasbsci.biomedcentral.com/articles/10.1186/s40104-019-0407-9)for minimum depth criteria before imputing GBS datafiles.
---maf 0.05 filter out sites with MAF lower than 5%
+
 
 #sites filtering
-vcftools --vcf WD_CV_Lec24.vcf --remove-indels --max-missing 0.90 --mac 3 --minDP 3 --remove-filtered-geno LowQual --recode --recode-INFO-all --out WD_CV_Lec24_missing90.vcf
+vcftools --vcf WD_CV_Lec24.vcf --remove-indels --mac 3 --minDP 3 --remove-filtered-geno LowQual --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
 
 #check individuals missingness
 vcftools --vcf WD_CV_Lec24.vcf --missing-indv --out missingness
