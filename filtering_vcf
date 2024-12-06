@@ -1,3 +1,12 @@
+#check quality
+
+bcftools query -f '%CHROM\t%POS\t%QUAL\t%INFO/DP\n' WD_CV_Lec24.vcf > /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/quality_stats.txt
+
+vcftools --vcf WD_CV_Lec24.vcf --missing-indv --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/sample_missingness
+vcftools --vcf WD_CV_Lec24.vcf --het --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/sample_heterozygosity
+
+
+
 
 # Filtering criteria
 
