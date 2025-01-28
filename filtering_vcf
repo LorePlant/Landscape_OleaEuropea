@@ -23,7 +23,7 @@ vcftools --vcf WD_CV_Lec24.vcf --het --out /storage/replicated/cirad/projects/CL
 
 #sites filtering
 
-vcftools --vcf WD_CV_Lec24.vcf --remove-indels --minDP 8 --max-meanDP 400 --minQ 200  --max-alleles 2 --min-alleles 2 --max-missing 0.90  --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
+vcftools --vcf WD_CV_Lec24.vcf --remove-indels --minDP 8 --max-meanDP 400 --minQ 200  --max-alleles 2 --min-alleles 2 --max-missing 1  --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
 
 # After filtering, kept 864168 out of a possible 35115743 Sites
 
