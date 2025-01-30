@@ -12,7 +12,7 @@ vcftools --vcf WD_CV_Lec24.vcf --het --out /storage/replicated/cirad/projects/CL
 
 --remove-indels: Removes all indels, keeping only SNPs.
 --minDP 8: Filters out sites with less than 8 reads of depth.
---max-meanDP 400: Excludes sites where the mean depth exceeds 400.
+--max-meanDP 500: Excludes sites where the mean depth exceeds 400.
 --minQ 200: Excludes SNPs with a quality score below 200.
 --max-alleles 2 and --min-alleles 2: Ensures that only biallelic sites are kept.
 --max-missing 0.90 \
@@ -23,9 +23,8 @@ vcftools --vcf WD_CV_Lec24.vcf --het --out /storage/replicated/cirad/projects/CL
 
 #sites filtering
 
-vcftools --vcf WD_CV_Lec24.vcf --remove-indels --minDP 8 --max-meanDP 400 --minQ 200  --max-alleles 2 --min-alleles 2 --max-missing 1  --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino24/WD_CV_Lec24_SNPs.vcf
+vcftools --gzvcf /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino_new_genome24/All_wild_cultivated_olive_2_run.vcf.gz --remove-indels --minDP 8 --max-meanDP 500 --minQ 200  --max-alleles 2 --min-alleles 2 --max-missing 0.95  --recode --recode-INFO-all --out /storage/replicated/cirad/projects/CLIMOLIVEMED/results/GenomicOffsets/Lorenzo/Leccino_new_genome24/site_filtered_wild_cult_lec24_miss_095.vcf
 
-# After filtering, kept 864168 out of a possible 35115743 Sites
 
 
 #check individuals missingness
