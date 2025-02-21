@@ -326,7 +326,7 @@ jpeg(file = "/lustre/rocchettil/RDA_temp_biplot.jpeg")
 plot(loading_temp)
 dev.off()
 
-write.table(qvalue, "Temp_GEA_Olive.csv", append = FALSE, quote = TRUE, sep = " ",
+write.table(qvalue, "Temp_GEA_Olive.csv", append = FALSE, quote = TRUE, sep = " ", 
             eol = "\n", na = "NA", dec = ".", row.names = FALSE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
